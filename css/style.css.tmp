@@ -1,0 +1,256 @@
+/* defino los colores q voy a usar en toda la app
+   asi los tengo a mano y los cambio facil si necesito 
+   actualizados para un look mas moderno y profesional */
+:root {
+    --color-principal: #1976D2;    /* azul mas profesional para destacar lo importante */
+    --color-secundario: #455A64;   /* gris azulado mas oscuro para elementos secundarios */
+    --color-fondo: #F8F9FA;        /* gris muy clarito para el fondo, super suave a la vista */
+    --color-texto: #212529;        /* gris muy oscuro para texto, mejor contraste */
+    --color-bordes: #DEE2E6;       /* gris claro para bordes, mas definido */
+    --color-ok: #28A745;           /* verde mas vibrante para confirmaciones */
+    --color-error: #DC3545;        /* rojo mas vibrante para marcar errores */
+    --color-hover: #2196F3;        /* azul para cuando pasas el mouse */
+    
+    /* diferentes tipos de sombras para dar profundidad */
+    --sombra-suave: 0 2px 4px rgba(0,0,0,0.1);   /* para elementos sutiles */
+    --sombra-media: 0 4px 6px rgba(0,0,0,0.1);   /* para elementos importantes */
+    --sombra-fuerte: 0 8px 16px rgba(0,0,0,0.1); /* para elementos destacados */
+    
+    /* transicion general para animaciones suaves */
+    --transicion: all 0.3s ease;
+}
+
+/* reset basico para q todo arranque igual */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;  /* esto hace q el padding no agrande los elementos */
+}
+
+/* estilos base del body */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  /* fuentes mas modernas */
+    line-height: 1.6;  /* separacion entre lineas para q se lea mejor */
+    color: var(--color-texto);
+    background-color: var(--color-fondo);  /* colores base del sitio */
+}
+
+/* contenedor principal q mantiene todo centrado y animado */
+.contenedor {
+    max-width: 1200px;  /* ancho maximo para pantallas grandes */
+    margin: 0 auto;     /* esto lo centra en la pantalla */
+    padding: 2rem;      /* espacio interno para q no quede todo pegado */
+    animation: fadeIn 0.5s ease-out;  /* aparece suavemente al cargar */
+}
+
+/* header con titulo y descripcion del simulador */
+header {
+    text-align: center;    /* todo centrado queda mejor para un titulo */
+    margin-bottom: 3rem;   /* espacio abajo para separar del contenido */
+    padding: 2rem 0;       /* espacio arriba y abajo */
+}
+
+/* estilo del titulo principal */
+h1 {
+    color: var(--color-principal);   /* azul para destacar el titulo */
+    font-size: 2.5rem;              /* letra grande para q se note */
+    margin-bottom: 1rem;            /* espacio antes de la descripcion */
+    text-transform: uppercase;       /* todo en mayusculas queda mas pro */
+    letter-spacing: 1px;            /* separacion entre letras para q se lea mejor */
+}
+
+/* cada seccion de la app */
+.seccion-config {
+    background: white;            /* fondo blanco para q resalte */
+    padding: 2rem;               /* espacio interno generoso */
+    border-radius: 12px;         /* bordes bien redondeados */
+    box-shadow: var(--sombra-media);  /* sombra para profundidad */
+    margin-bottom: 2rem;         /* espacio entre secciones */
+    transition: var(--transicion);  /* para animaciones suaves */
+}
+
+/* efecto hover en las secciones */
+.seccion-config:hover {
+    box-shadow: var(--sombra-fuerte);  /* mas sombra al pasar el mouse */
+    transform: translateY(-2px);        /* se levanta un poquito */
+}
+
+/* titulos de secciones */
+h2 {
+    color: var(--color-secundario);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+/* grilla para los formularios */
+.grilla-formulario {
+    display: grid;                                           /* uso grid para ordenar los campos */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));  /* se ajusta segun el ancho */
+    gap: 1.5rem;                                            /* espacio entre campos */
+}
+
+/* cada grupo de input con su label */
+.grupo-formulario {
+    margin-bottom: 1.5rem;    /* espacio entre grupos */
+}
+
+/* estilos de las etiquetas */
+label {
+    display: block;         /* cada label en su propia linea */
+    margin-bottom: 0.5rem;  /* separacion con su input */
+    font-weight: 500;       /* un poco mas grueso para q se note */
+    color: var(--color-secundario);  /* color mas suave q el texto normal */
+}
+
+/* estilos para todos los campos de entrada */
+input,
+select,
+textarea {
+    width: 100%;            /* q ocupen todo el ancho disponible */
+    padding: 0.75rem;       /* espacio interno para el texto */
+    border: 2px solid var(--color-bordes);  /* borde mas grueso */
+    border-radius: 8px;     /* esquinas mas redondeadas */
+    font-size: 1rem;        /* mismo tamaño q el resto del texto */
+    transition: var(--transicion);  /* para animaciones suaves */
+}
+
+/* efecto focus en los campos */
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--color-principal);  /* borde azul al seleccionar */
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);  /* glow sutil */
+    outline: none;  /* saco el outline default */
+}
+
+/* estilos base de botones */
+.boton {
+    padding: 0.75rem 1.5rem;   /* espacio interno generoso */
+    border: none;              /* saco el borde default */
+    border-radius: 8px;        /* esquinas redondeadas */
+    cursor: pointer;           /* manito cuando paso x arriba */
+    font-size: 1rem;          /* mismo tamaño q el texto */
+    font-weight: 500;         /* un poco mas grueso */
+    background-color: var(--color-secundario);  /* color base */
+    color: white;             /* texto blanco */
+    transition: var(--transicion);  /* animaciones suaves */
+    text-transform: uppercase;  /* mayusculas para q destaque */
+    letter-spacing: 0.5px;     /* separacion entre letras */
+}
+
+/* efecto hover en botones */
+.boton:hover {
+    transform: translateY(-1px);  /* se levanta al pasar el mouse */
+    box-shadow: var(--sombra-media);  /* agrega sombra */
+    background-color: var(--color-hover);  /* cambia de color */
+}
+
+/* boton principal mas destacado */
+.boton-primario {
+    background-color: var(--color-principal);  /* azul mas importante */
+}
+
+/* seccion de resultados */
+.resultados {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: var(--sombra-media);
+    animation: slideUp 0.5s ease-out;  /* aparece deslizandose */
+}
+
+/* estadisticas en grid */
+.grilla-estadisticas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* cada item de estadistica */
+.item-estadistica {
+    padding: 1.5rem;
+    background: var(--color-fondo);
+    border-radius: 8px;
+    text-align: center;
+    transition: var(--transicion);
+}
+
+/* efecto hover en estadisticas */
+.item-estadistica:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-suave);
+}
+
+/* tabla de resultados */
+.secuencia-peticiones {
+    overflow-x: auto;       /* scroll horizontal si hace falta */
+    margin-top: 2rem;
+    border-radius: 8px;
+    box-shadow: var(--sombra-suave);
+}
+
+/* animaciones para entrada suave de elementos */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ajustes para pantallas chicas */
+@media (max-width: 768px) {
+    .contenedor {
+        padding: 1rem;    /* menos padding en mobile */
+    }
+
+    .seccion-config {
+        padding: 1.5rem;  /* menos padding en secciones */
+    }
+
+    .grilla-formulario,
+    .grilla-estadisticas {
+        grid-template-columns: 1fr;  /* todo en una columna */
+    }
+
+    h1 {
+        font-size: 2rem;  /* titulo mas chico en mobile */
+    }
+}
+
+/* estilos para los valores recomendados */
+.valores-recomendados {
+    background: var(--color-fondo);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+}
+
+.valores-recomendados h3 {
+    color: var(--color-secundario);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.valores-recomendados ul {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.valores-recomendados li {
+    padding: 0.5rem;
+    border-left: 3px solid var(--color-principal);
+    background: white;
+    border-radius: 0 4px 4px 0;
+}

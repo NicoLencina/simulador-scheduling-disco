@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Scheduling de Disco - SO</title>
+    <!-- estilos de la aplicacion -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- todo va en un container para q quede centrado -->
+    <div class="contenedor">
+        <header>
+            <h1>Simulador de Algoritmos de Scheduling de Disco</h1>
+            <p class="descripcion">Simulador para comparar los diferentes algoritmos de planificación del disco</p>
+        </header>
+
+        <main>
+            <!-- Configuración del disco -->
+            <section id="configuracion-disco" class="seccion-config">
+                <div class="header-config">
+                    <h2>Configuración del Disco</h2>
+                    <div class="controles-superiores">
+                        <button class="btn-autocompletar" id="btn-autocompletar">
+                            <i class="fas fa-magic"></i> Autocompletar
+                        </button>
+                        <div class="selector-algoritmo-container">
+                            <label for="algoritmo">Algoritmo:</label>
+                            <select id="algoritmo" required>
+                                <option value="fifo">FIFO</option>
+                                <option value="sstf">SSTF</option>
+                                <option value="scan">SCAN</option>
+                                <option value="cscan">C-SCAN</option>
+                                <option value="look">LOOK</option>
+                                <option value="clook">C-LOOK</option>
+                                <option value="fscan">F-SCAN</option>
+                                <option value="nstepscan">N-STEP-SCAN</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layout-formulario">
+                    <div class="grilla-formulario">
+                        <div class="grupo-formulario" data-tooltip="Tiempo que tarda el cabezal en moverse de un cilindro a otro. Valores típicos: 0.1 a 1.0 ms por cilindro.">
+                            <label for="stm">STM:</label>
+                            <input type="number" id="stm" required min="0" step="0.1" placeholder="0.1 - 1.0">
+                            <span class="help-text">ms/cilindro</span>
+                        </div>
+                        <div class="grupo-formulario" data-tooltip="Velocidad a la que giran los platos del disco. Velocidades comunes: 5400, 7200, 10000, 15000 RPM.">
+                            <label for="vr">VR:</label>
+                            <input type="number" id="vr" required min="0" placeholder="5400 - 15000">
+                            <span class="help-text">RPM</span>
+                        </div>
+                        <div class="grupo-formulario" data-tooltip="Tiempo necesario para transferir un sector de datos. Típicamente entre 0.1 y 1.0 milisegundos por sector.">
+                            <label for="tt1s">TT1S:</label>
+                            <input type="number" id="tt1s" required min="0" step="0.1" placeholder="0.1 - 1.0">
+                            <span class="help-text">ms/sector</span>
+                        </div>
+                        <div class="grupo-formulario" data-tooltip="Cantidad de bloques de datos que caben en una pista del disco. Común entre 100 y 1000 bloques.">
+                            <label for="tb">TB:</label>
+                            <input type="number" id="tb" required min="1" placeholder="100 - 1000">
+                            <span class="help-text">bloques/pista</span>
+                        </div>
+                        <div class="grupo-formulario" data-tooltip="Número total de platos magnéticos en el disco duro. Los discos comunes tienen entre 1 y 8 platos.">
+                            <label for="tp">TP:</label>
+                            <input type="number" id="tp" required min="1" placeholder="1 - 8">
+                            <span class="help-text">platos</span>
+                        </div>
+                        <div class="grupo-formulario" data-tooltip="Número de platos que forman un cilindro (conjunto de pistas alineadas verticalmente). Debe ser ≤ TP.">
+                            <label for="pc">PC:</label>
+                            <input type="number" id="pc" required min="1" placeholder="1 - TP">
+                            <span class="help-text">platos/cilindro</span>
+                        </div>
+                        <div class="grupo-formulario" data-tooltip="Número de sectores en un cilindro completo. Común entre 32 y 256 sectores por cilindro.">
+                            <label for="sc">SC:</label>
+                            <input type="number" id="sc" required min="1" placeholder="32 - 256">
+                            <span class="help-text">sectores/cilindro</span>
+                        </div>
+                        <div class="grupo-formulario" data-tooltip="Cilindro donde se encuentra inicialmente el cabezal de lectura/escritura antes de comenzar a procesar peticiones.">
+                            <label for="initial-position">Posición Inicial:</label>
+                            <input type="number" id="initial-position" required min="0" placeholder="0 - 199">
+                            <span class="help-text">cilindro</span>
+                        </div>
+                        
+                        <!-- Lista de peticiones - ocupa toda la fila -->
+                        <div class="grupo-formulario grupo-peticiones" data-tooltip="Lista de cilindros a acceder separados por comas. Mínimo 15 peticiones. Ejemplo: 45, 20, 88, 15, 92">
+                            <label for="requests">Lista de Peticiones:</label>
+                            <textarea id="requests" rows="3" required placeholder="Ej: 45, 20, 88, 15, 92, 150, 5, 35, 78, 98, 120, 44, 65, 25, 100"></textarea>
+                            <button id="generar-random" class="boton boton-generar">
+                                <i class="fas fa-dice"></i>
+                            </button>
+                            <span class="help-text">Mínimo 15 peticiones separadas por comas</span>
+                        </div>
+                    </div>
+                    <div class="valores-recomendados">
+                        <div class="imagen-disco-rigido">
+                            <img src="img/disco-rigido.png" alt="Disco Rígido" class="img-disco-principal">
+                            <p class="caption-disco">Estructura de un Disco Rígido</p>
+                        </div>
+                        <h3>Rangos recomendados para cada valor:</h3>
+                        <ul>
+                            <li>STM: Entre 0.1 y 1.0 ms/cilindro</li>
+                            <li>VR: Entre 5400 y 15000 RPM</li>
+                            <li>TT1S: Entre 0.1 y 1.0 ms</li>
+                            <li>TB: Entre 100 y 1000 bloques</li>
+                            <li>TP: Entre 1 y 8 platos</li>
+                            <li>PC: Entre 1 y el valor de TP</li>
+                            <li>SC: Entre 32 y 256 sectores</li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="algorithm-params" class="oculto">
+                    <div class="grupo-formulario n-step-param oculto">
+                        <label for="n-step">Valor de N (para N-STEP-SCAN):</label>
+                        <input type="number" id="n-step" min="1" value="4">
+                    </div>
+                </div>
+                <div class="boton-simular-container">
+                    <button id="simular" class="boton boton-primario">
+                        <i class="fas fa-play"></i> Simular
+                    </button>
+                </div>
+            </section>
+
+            <!-- Resultados -->
+            <section id="seccion-resultados" class="resultados oculto">
+                <div class="header-resultados">
+                    <div class="algoritmo-usado">
+                        <h2>Resultados: <span id="nombre-algoritmo">FIFO</span></h2>
+                        <p id="descripcion-algoritmo" class="descripcion-algoritmo"></p>
+                    </div>
+                </div>
+
+                <div class="estadisticas-horizontal">
+                    <div class="item-estadistica">
+                        <i class="fas fa-road"></i>
+                        <div class="stat-info">
+                            <label>Distancia Total</label>
+                            <span id="distancia-total">0</span>
+                            <small>cilindros</small>
+                        </div>
+                    </div>
+                    <div class="item-estadistica">
+                        <i class="fas fa-search"></i>
+                        <div class="stat-info">
+                            <label>Tiempo Búsqueda</label>
+                            <span id="tiempo-busqueda-total">0</span>
+                            <small>ms</small>
+                        </div>
+                    </div>
+                    <div class="item-estadistica">
+                        <i class="fas fa-sync"></i>
+                        <div class="stat-info">
+                            <label>Tiempo Rotación</label>
+                            <span id="tiempo-rotacion-total">0</span>
+                            <small>ms</small>
+                        </div>
+                    </div>
+                    <div class="item-estadistica">
+                        <i class="fas fa-exchange-alt"></i>
+                        <div class="stat-info">
+                            <label>Tiempo Transferencia</label>
+                            <span id="tiempo-transferencia-total">0</span>
+                            <small>ms</small>
+                        </div>
+                    </div>
+                    <div class="item-estadistica destacado">
+                        <i class="fas fa-clock"></i>
+                        <div class="stat-info">
+                            <label>Tiempo Total</label>
+                            <span id="tiempo-acceso-total">0</span>
+                            <small>ms</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contenedor-grafico">
+                    <h3><i class="fas fa-chart-line"></i> Visualización del Movimiento del Cabezal</h3>
+                    <canvas id="grafico-movimiento"></canvas>
+                </div>
+
+                <div class="secuencia-peticiones">
+                    <h3><i class="fas fa-list"></i> Secuencia Detallada de Peticiones</h3>
+                    <div class="tabla-wrapper">
+                        <table id="sequence-table">
+                            <thead>
+                                <tr>
+                                    <th>Orden</th>
+                                    <th>Cilindro</th>
+                                    <th>Tiempo Búsqueda</th>
+                                    <th>Tiempo Rotación</th>
+                                    <th>Tiempo Transferencia</th>
+                                    <th>Tiempo Total</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts de la aplicación -->
+    <script>
+        // Variable global para verificar cuando todos los scripts están cargados
+        window.modulosCargados = false;
+    </script>
+    <script type="module">
+        // Importación inicial de módulos y configuración global
+        import ConfiguracionDisco from './js/config.js';
+        import PeticionDisco from './js/request.js';
+        import * as utils from './js/utils.js';
+
+        // Hacer las clases disponibles globalmente
+        window.ConfiguracionDisco = ConfiguracionDisco;
+        window.PeticionDisco = PeticionDisco;
+        window.utils = utils;
+        
+        // Indicar que los módulos están cargados
+        window.modulosCargados = true;
+        console.log('Módulos cargados correctamente');
+    </script>
+    <script type="module" src="js/main.js"></script>
+
+    <!-- Script para depuración -->
+    <script>
+        window.addEventListener('error', function(e) {
+            console.error('Error:', e.message);
+            console.error('Archivo:', e.filename);
+            console.error('Línea:', e.lineno);
+            console.error('Columna:', e.colno);
+            console.error('Stack:', e.error?.stack);
+            alert('Error en la aplicación: ' + e.message + '\nRevisa la consola para más detalles (F12)');
+        });
+
+        // Verificar que todo esté cargado correctamente
+        window.addEventListener('load', function() {
+            console.log('Página cargada completamente');
+            if (!window.modulosCargados) {
+                console.error('Los módulos no se cargaron correctamente');
+                alert('Error: La aplicación debe ejecutarse desde un servidor web (usa Live Server en VS Code)');
+            }
+        });
+    </script>
+</body>
+</html>

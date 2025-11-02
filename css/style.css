@@ -1,0 +1,781 @@
+/* defino los colores q voy a usar en toda la app
+   asi los tengo a mano y los cambio facil si necesito 
+   actualizados para un look mas moderno y profesional */
+:root {
+    --color-principal: #1976D2;    /* azul mas profesional para destacar lo importante */
+    --color-secundario: #455A64;   /* gris azulado mas oscuro para elementos secundarios */
+    --color-fondo: #F8F9FA;        /* gris muy clarito para el fondo, super suave a la vista */
+    --color-texto: #212529;        /* gris muy oscuro para texto, mejor contraste */
+    --color-bordes: #DEE2E6;       /* gris claro para bordes, mas definido */
+    --color-ok: #28A745;           /* verde mas vibrante para confirmaciones */
+    --color-error: #DC3545;        /* rojo mas vibrante para marcar errores */
+    --color-hover: #2196F3;        /* azul para cuando pasas el mouse */
+    
+    /* diferentes tipos de sombras para dar profundidad */
+    --sombra-suave: 0 2px 4px rgba(0,0,0,0.1);   /* para elementos sutiles */
+    --sombra-media: 0 4px 6px rgba(0,0,0,0.1);   /* para elementos importantes */
+    --sombra-fuerte: 0 8px 16px rgba(0,0,0,0.1); /* para elementos destacados */
+    
+    /* transicion general para animaciones suaves */
+    --transicion: all 0.3s ease;
+}
+
+/* reset basico para q todo arranque igual */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;  /* esto hace q el padding no agrande los elementos */
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  /* fuentes mas modernas */
+    line-height: 1.6;  /* separacion entre lineas para q se lea mejor */
+    color: var(--color-texto);
+    background-color: var(--color-fondo);  /* colores base del sitio */
+}
+
+/* contenedor principal q mantiene todo centrado */
+.contenedor {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Header y titulos */
+header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+}
+
+h1 {
+    color: var(--color-principal);
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Secciones */
+.seccion-config {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: var(--sombra-media);
+    margin-bottom: 2rem;
+}
+
+h2 {
+    color: var(--color-secundario);
+    margin-bottom: 1rem;
+}
+
+/* header de la seccion con controles superiores */
+.header-config {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-config h2 {
+    margin-bottom: 0;
+    flex: 0 0 auto;
+}
+
+.controles-superiores {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.selector-algoritmo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.selector-algoritmo-container label {
+    margin-bottom: 0;
+    font-weight: 600;
+    color: var(--color-principal);
+    white-space: nowrap;
+}
+
+.selector-algoritmo-container select {
+    min-width: 200px;
+}
+
+/* layout del formulario: formularios a la izquierda, valores recomendados a la derecha */
+.layout-formulario {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+    align-items: start;
+}
+
+/* estilos para los formularios de configuracion */
+.grilla-formulario {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);  /* dos columnas fijas */
+    gap: 1.5rem;
+}
+
+/* grupo de peticiones ocupa toda la fila */
+.grupo-peticiones {
+    grid-column: 1 / -1;  /* ocupa desde la primera hasta la ultima columna */
+}
+
+.grupo-peticiones textarea {
+    min-height: 80px;
+    resize: vertical;
+    font-family: 'Courier New', monospace;
+}
+
+.grupo-formulario {
+    position: relative;     /* para posicionar el tooltip */
+    margin-bottom: 0;      /* sin margen extra */
+    padding: 1rem;         /* espacio interno */
+    background: #fff;      /* fondo blanco */
+    border-radius: 8px;    /* esquinas redondeadas */
+    box-shadow: var(--sombra-suave);
+    transition: var(--transicion);
+}
+
+.grupo-formulario:hover {
+    box-shadow: var(--sombra-media);
+    transform: translateY(-2px);
+    z-index: 10;  /* aparece sobre otros elementos */
+}
+
+/* tooltip que aparece al hacer hover */
+.grupo-formulario::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    white-space: normal;
+    width: max-content;
+    max-width: 300px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    line-height: 1.4;
+    text-align: center;
+}
+
+/* flecha del tooltip */
+.grupo-formulario::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(6px);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+/* mostrar tooltip al hacer hover */
+.grupo-formulario:hover::before,
+.grupo-formulario:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* imagen de ayuda que aparece al hover */
+.help-image {
+    display: none;  /* ocultamos las imágenes hasta que existan */
+}
+
+.grupo-formulario:hover .help-image {
+    display: none;  /* mantenemos ocultas las imágenes */
+}
+
+/* texto de ayuda visible */
+.help-text {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.25rem;
+    font-style: italic;
+}
+
+/* contenedor de imagen principal */
+.imagen-disco {
+    position: sticky;
+    top: 2rem;
+    text-align: center;
+    display: none;  /* ocultamos hasta que existan las imágenes */
+}
+
+.imagen-principal {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    box-shadow: var(--sombra-media);
+}
+
+/* boton de generar peticiones aleatorias */
+.boton-generar {
+    position: absolute;
+    right: 1rem;
+    top: 3.5rem;
+    width: 45px;
+    height: 45px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-ok);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: var(--transicion);
+    box-shadow: var(--sombra-suave);
+}
+
+.boton-generar:hover {
+    background-color: #218838;
+    transform: scale(1.1);
+    box-shadow: var(--sombra-media);
+}
+
+.boton-generar i {
+    font-size: 1.2rem;
+}
+
+label {
+    display: block;         /* cada label en su propia linea */
+    margin-bottom: 0.5rem;  /* separacion con su input */
+    font-weight: 600;      /* mas grueso para mejor legibilidad */
+    color: var(--color-principal);  /* color azul para destacar */
+    font-size: 0.95rem;
+}
+
+input,
+select,
+textarea {
+    width: 100%;          /* q ocupen todo el ancho disponible */
+    padding: 0.75rem;      /* mas espacio interno */
+    border: 2px solid var(--color-bordes);  /* borde mas grueso */
+    border-radius: 6px;   /* esquinas mas redondeadas */
+    font-size: 1rem;      /* mismo tamaño q el resto del texto */
+    transition: var(--transicion);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--color-principal);
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+/* estilo para placeholder */
+input::placeholder {
+    color: #999;
+    font-style: italic;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* estilo de los botones con animaciones mas copadas */
+.boton {
+    padding: 0.75rem 1.5rem;   /* espacio interno generoso */
+    border: none;              /* saco el borde default */
+    border-radius: 8px;        /* esquinas mas redondeadas */
+    cursor: pointer;           /* manito cuando paso x arriba */
+    font-size: 1rem;          /* mismo tamaño q el texto */
+    font-weight: 500;         /* un poco mas grueso */
+    background-color: var(--color-secundario);  /* color base */
+    color: white;             /* texto blanco */
+    transition: var(--transicion);  /* animaciones suaves */
+    text-transform: uppercase;  /* mayusculas para q destaque */
+    letter-spacing: 0.5px;     /* separacion entre letras */
+    position: relative;        /* para el efecto de hover */
+    overflow: hidden;          /* para q no se vea el efecto fuera del boton */
+}
+
+.boton:hover {
+    transform: translateY(-2px);  /* se levanta al pasar el mouse */
+    box-shadow: var(--sombra-media);  /* agrega sombra */
+    background-color: var(--color-hover);  /* cambia de color */
+}
+
+.boton:active {
+    transform: translateY(1px);  /* efecto de click */
+    box-shadow: var(--sombra-suave);  /* menos sombra al clickear */
+}
+
+.boton-primario {
+    background-color: var(--color-principal);  /* azul para botones importantes */
+    box-shadow: var(--sombra-suave);  /* sombra sutil siempre */
+}
+
+/* seccion donde se muestran los resultados con mas onda */
+.resultados {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: var(--sombra-fuerte);
+    animation: slideUp 0.5s ease-out;
+    margin-top: 2rem;
+    scroll-margin-top: 2rem;  /* espacio para el scroll automático */
+}
+
+/* header de resultados con algoritmo usado */
+.header-resultados {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 3px solid var(--color-principal);
+}
+
+.algoritmo-usado h2 {
+    color: var(--color-principal);
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#nombre-algoritmo {
+    color: var(--color-ok);
+    font-weight: 700;
+}
+
+.descripcion-algoritmo {
+    font-size: 1rem;
+    color: var(--color-secundario);
+    line-height: 1.6;
+    background: var(--color-fondo);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--color-principal);
+}
+
+/* estadisticas horizontales en una fila */
+.estadisticas-horizontal {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    padding: 0.5rem;
+}
+
+.item-estadistica {
+    flex: 1;
+    min-width: 150px;
+    padding: 1.25rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    text-align: center;
+    transition: var(--transicion);
+    border: 2px solid var(--color-bordes);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.item-estadistica.destacado {
+    background: linear-gradient(135deg, var(--color-principal) 0%, var(--color-hover) 100%);
+    color: white;
+    border-color: var(--color-principal);
+}
+
+.item-estadistica i {
+    font-size: 1.75rem;
+    color: var(--color-principal);
+}
+
+.item-estadistica.destacado i {
+    color: white;
+}
+
+.item-estadistica:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--sombra-media);
+    border-color: var(--color-principal);
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.stat-info label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-secundario);
+    margin-bottom: 0;
+}
+
+.item-estadistica.destacado .stat-info label {
+    color: rgba(255,255,255,0.9);
+}
+
+.stat-info span {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-principal);
+}
+
+.item-estadistica.destacado .stat-info span {
+    color: white;
+}
+
+.stat-info small {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.item-estadistica.destacado .stat-info small {
+    color: rgba(255,255,255,0.8);
+}
+
+/* tabla que muestra la secuencia de movimientos */
+.secuencia-peticiones {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--sombra-suave);
+    border: 1px solid var(--color-bordes);
+}
+
+.secuencia-peticiones h3 {
+    color: var(--color-principal);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.secuencia-peticiones h3 i {
+    font-size: 1.25rem;
+}
+
+.tabla-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--color-bordes);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid var(--color-bordes);
+}
+
+th {
+    background: linear-gradient(135deg, var(--color-principal) 0%, var(--color-hover) 100%);
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+td {
+    background: white;
+    transition: var(--transicion);
+}
+
+tbody tr:hover td {
+    background: var(--color-fondo);
+    transform: scale(1.01);
+}
+
+tbody tr:nth-child(even) td {
+    background: #fafbfc;
+}
+
+tbody tr:nth-child(even):hover td {
+    background: var(--color-fondo);
+}
+
+/* Utilidades */
+.oculto {
+    display: none;
+}
+
+/* contenedor del grafico */
+.contenedor-grafico {
+    margin-bottom: 2rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--sombra-suave);
+    border: 1px solid var(--color-bordes);
+}
+
+.contenedor-grafico h3 {
+    color: var(--color-principal);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.contenedor-grafico h3 i {
+    font-size: 1.25rem;
+}
+
+/* canvas para dibujar el grafico de movimientos */
+#grafico-movimiento {
+    width: 100%;
+    height: 450px;
+    background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 8px;
+    border: 2px solid var(--color-bordes);
+}
+
+/* estilos para botón autocompletar */
+.btn-autocompletar {
+    background-color: var(--color-secundario);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transicion);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-autocompletar:hover {
+    background-color: var(--color-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-media);
+}
+
+.btn-autocompletar i {
+    font-size: 1rem;
+}
+
+/* contenedor del boton simular */
+.boton-simular-container {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+#simular {
+    padding: 1rem 3rem;
+    font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+#simular i {
+    font-size: 1.2rem;
+}
+
+/* parametros del algoritmo */
+#algorithm-params {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: var(--color-fondo);
+    border-radius: 8px;
+}
+
+#algorithm-params .grupo-formulario {
+    margin-bottom: 0;
+}
+
+/* valores recomendados - ahora a la derecha */
+.valores-recomendados {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--sombra-media);
+    height: fit-content;  /* ajusta al contenido */
+}
+
+/* contenedor de imagen de disco rigido */
+.imagen-disco-rigido {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid rgba(255,255,255,0.3);
+}
+
+.img-disco-principal {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    border-radius: 8px;
+    background: white;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: var(--transicion);
+}
+
+.img-disco-principal:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.caption-disco {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: rgba(255,255,255,0.9);
+}
+
+.valores-recomendados h3 {
+    color: white;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid rgba(255,255,255,0.3);
+    padding-bottom: 0.5rem;
+}
+
+.valores-recomendados ul {
+    list-style: none;
+    padding: 0;
+}
+
+.valores-recomendados li {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    transition: var(--transicion);
+}
+
+.valores-recomendados li:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateX(5px);
+}
+
+/* animacion de entrada */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ajustes para pantallas medianas */
+@media (max-width: 1024px) {
+    .layout-formulario {
+        grid-template-columns: 1fr;  /* una columna en tablets */
+    }
+
+    .valores-recomendados {
+        margin-top: 1rem;
+    }
+    
+    .header-config {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .controles-superiores {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .selector-algoritmo-container {
+        width: 100%;
+    }
+    
+    .selector-algoritmo-container select {
+        flex: 1;
+    }
+}
+
+/* ajustes para pantallas chicas (celulares) */
+@media (max-width: 768px) {
+    .contenedor {
+        padding: 10px;    /* menos padding en mobile */
+    }
+
+    .layout-formulario {
+        grid-template-columns: 1fr;  /* una columna en mobile */
+    }
+
+    .valores-recomendados {
+        margin-top: 1rem;
+    }
+
+    .grilla-formulario {
+        grid-template-columns: 1fr;  /* inputs uno abajo del otro en mobile */
+    }
+
+    .grilla-estadisticas {
+        grid-template-columns: 1fr;  /* estadisticas una abajo de otra */
+    }
+    
+    /* tooltip mas pequeño en mobile */
+    .grupo-formulario::before {
+        max-width: 250px;
+        font-size: 0.8rem;
+    }
+    
+    .header-config {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .controles-superiores {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .estadisticas-horizontal {
+        flex-direction: column;
+    }
+    
+    .item-estadistica {
+        min-width: auto;
+    }
+}
