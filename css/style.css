@@ -184,6 +184,96 @@ h2 {
     min-width: 200px;
 }
 
+/* Modo de validación con switch */
+.modo-validacion {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid var(--color-bordes);
+    transition: var(--transicion);
+}
+
+.modo-validacion:has(input:checked) {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+    border-color: #ffc107;
+}
+
+.switch-container {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+}
+
+.switch-container input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 30px;
+    transition: var(--transicion);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    border-radius: 50%;
+    transition: var(--transicion);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+input:checked + .switch-slider {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+}
+
+input:checked + .switch-slider:before {
+    transform: translateX(30px);
+}
+
+.modo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.modo-label {
+    font-weight: 600;
+    color: var(--color-principal);
+    font-size: 0.95rem;
+}
+
+.modo-validacion:has(input:checked) .modo-label {
+    color: #ff9800;
+}
+
+.modo-descripcion {
+    font-size: 0.75rem;
+    color: var(--color-secundario);
+    line-height: 1.2;
+}
+
+.modo-validacion:has(input:checked) .modo-descripcion {
+    color: #856404;
+}
+
 /* layout del formulario: formularios a la izquierda, valores recomendados a la derecha */
 .layout-formulario {
     display: grid;
@@ -601,6 +691,99 @@ tbody tr:nth-child(even):hover td {
     display: none;
 }
 
+/* Estilos para campos con error */
+.campo-error {
+    border-color: var(--color-error) !important;
+    background-color: #fff5f5 !important;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Estilos para campos completados */
+.campo-completado {
+    border-color: var(--color-ok) !important;
+    background-color: #f0fff4 !important;
+    animation: pulse-success 0.5s ease-in-out;
+}
+
+@keyframes pulse-success {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+/* Mensaje de error en campo */
+.mensaje-error {
+    display: block;
+    color: var(--color-error);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    font-weight: 500;
+    animation: slideDown 0.3s ease-out;
+}
+
+.mensaje-error i {
+    margin-right: 0.25rem;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Notificaciones flotantes */
+.notificacion {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: var(--sombra-fuerte);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    z-index: 10000;
+    max-width: 400px;
+    transform: translateX(450px);
+    opacity: 0;
+    transition: all 0.3s ease-out;
+}
+
+.notificacion.mostrar {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notificacion i {
+    font-size: 1.5rem;
+}
+
+.notificacion-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.notificacion-error {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.notificacion-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: #212529;
+}
+
 /* contenedor del grafico */
 .contenedor-grafico {
     margin-bottom: 2rem;
@@ -634,7 +817,7 @@ tbody tr:nth-child(even):hover td {
 
 /* estilos para botón autocompletar */
 .btn-autocompletar {
-    background-color: var(--color-secundario);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     padding: 0.75rem 1.5rem;
     border: none;
@@ -644,16 +827,48 @@ tbody tr:nth-child(even):hover td {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    font-weight: 600;
+    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-autocompletar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.btn-autocompletar:hover::before {
+    left: 100%;
 }
 
 .btn-autocompletar:hover {
-    background-color: var(--color-hover);
     transform: translateY(-2px);
-    box-shadow: var(--sombra-media);
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-autocompletar:active {
+    transform: translateY(0);
 }
 
 .btn-autocompletar i {
     font-size: 1rem;
+    animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.btn-autocompletar:not(:hover) i {
+    animation: none;
 }
 
 /* contenedor del boton simular */
@@ -795,6 +1010,11 @@ tbody tr:nth-child(even):hover td {
         width: 100%;
         flex-direction: column;
         align-items: stretch;
+    }
+    
+    .modo-validacion {
+        width: 100%;
+        justify-content: center;
     }
     
     .selector-algoritmo-container {

@@ -81,13 +81,83 @@ function autocompletarCampos() {
         requests: '0, 45, 20, 88, 15, 92, 150, 5, 35, 78, 98, 120, 44, 65, 25'
     };
 
-    // Autocompletar cada campo
+    // Autocompletar cada campo con animación
     for (const [id, valor] of Object.entries(valoresRecomendados)) {
         const elemento = document.getElementById(id);
         if (elemento) {
             elemento.value = valor;
+            elemento.classList.remove('campo-error');
+            elemento.classList.add('campo-completado');
+            setTimeout(() => {
+                elemento.classList.remove('campo-completado');
+            }, 1000);
         }
     }
+    
+    // Limpiar mensajes de error
+    limpiarErrores();
+    
+    // Mostrar mensaje de éxito
+    mostrarNotificacion('Campos autocompletados correctamente', 'success');
+}
+
+// Función para limpiar todos los errores
+function limpiarErrores() {
+    document.querySelectorAll('.campo-error').forEach(campo => {
+        campo.classList.remove('campo-error');
+    });
+    document.querySelectorAll('.mensaje-error').forEach(msg => {
+        msg.remove();
+    });
+}
+
+// Función para mostrar error en un campo específico
+function mostrarErrorCampo(idCampo, mensaje) {
+    const campo = document.getElementById(idCampo);
+    if (campo) {
+        campo.classList.add('campo-error');
+        
+        // Remover mensaje anterior si existe
+        const grupoFormulario = campo.closest('.grupo-formulario');
+        const mensajeAnterior = grupoFormulario.querySelector('.mensaje-error');
+        if (mensajeAnterior) {
+            mensajeAnterior.remove();
+        }
+        
+        // Agregar nuevo mensaje
+        const mensajeError = document.createElement('span');
+        mensajeError.className = 'mensaje-error';
+        mensajeError.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${mensaje}`;
+        grupoFormulario.appendChild(mensajeError);
+        
+        // Scroll al campo con error
+        campo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+// Función para mostrar notificaciones
+function mostrarNotificacion(mensaje, tipo = 'error') {
+    const notificacion = document.createElement('div');
+    notificacion.className = `notificacion notificacion-${tipo}`;
+    
+    const icono = tipo === 'success' ? 'check-circle' : 
+                  tipo === 'warning' ? 'exclamation-triangle' : 'times-circle';
+    
+    notificacion.innerHTML = `
+        <i class="fas fa-${icono}"></i>
+        <span>${mensaje}</span>
+    `;
+    
+    document.body.appendChild(notificacion);
+    
+    // Animar entrada
+    setTimeout(() => notificacion.classList.add('mostrar'), 10);
+    
+    // Remover después de 4 segundos
+    setTimeout(() => {
+        notificacion.classList.remove('mostrar');
+        setTimeout(() => notificacion.remove(), 300);
+    }, 4000);
 }
 
 //cuando carga la pagina conecto todos los eventos
@@ -106,6 +176,9 @@ window.addEventListener('load', () => {
     //cuando cambia el algoritmo veo si necesito mostrar params extra
     document.getElementById('algoritmo').addEventListener('change', mostrarParamsExtra);
     
+    //cuando cambia el modo de validación
+    document.getElementById('modo-libre').addEventListener('change', cambiarModoValidacion);
+    
     //agrego boton para probar casos d prueba
     const btnTest = document.createElement('button');
     btnTest.textContent = 'Probar Casos de Prueba';
@@ -116,6 +189,23 @@ window.addEventListener('load', () => {
     // Ya se inicializó configDisco arriba
     console.log('Configuración inicial creada:', configDisco);
 });
+
+//cambia entre modo estricto y modo libre
+function cambiarModoValidacion() {
+    const modoLibre = document.getElementById('modo-libre').checked;
+    const modoTexto = document.getElementById('modo-texto');
+    const modoDescripcion = document.getElementById('modo-descripcion');
+    
+    if (modoLibre) {
+        modoTexto.textContent = 'Modo Libre';
+        modoDescripcion.textContent = 'Valores personalizados sin restricciones';
+        mostrarNotificacion('Modo Libre activado - Puedes usar cualquier valor', 'warning');
+    } else {
+        modoTexto.textContent = 'Modo Estricto';
+        modoDescripcion.textContent = 'Valores dentro de rangos recomendados';
+        mostrarNotificacion('Modo Estricto activado - Valores dentro de rangos', 'success');
+    }
+}
 
 //genera una lista random de peticiones
 function generarPeticionesRandom() {
@@ -131,6 +221,15 @@ function generarPeticionesRandom() {
     
     //los muestro en el textarea
     document.getElementById('requests').value = peticiones.join(', ');
+    
+    // Limpiar error si existía
+    const campo = document.getElementById('requests');
+    campo.classList.remove('campo-error');
+    const grupoFormulario = campo.closest('.grupo-formulario');
+    const mensajeAnterior = grupoFormulario.querySelector('.mensaje-error');
+    if (mensajeAnterior) {
+        mensajeAnterior.remove();
+    }
 }
 
 //muestra los params extra segun el algoritmo
@@ -151,6 +250,9 @@ function mostrarParamsExtra() {
 
 //funcion principal q arranca la simulacion
 function iniciarSimulacion() {
+    // Limpiar errores previos
+    limpiarErrores();
+    
     try {
         //agarro todos los valores q puso el usuario
         const params = obtenerParametros();
@@ -175,15 +277,20 @@ function iniciarSimulacion() {
             });
         }, 100);
         
+        // Notificación de éxito
+        mostrarNotificacion('Simulación completada exitosamente', 'success');
+        
     } catch(error) {
-        //si hay error lo muestro
-        alert('Error: ' + error);
+        console.error('Error en simulación:', error);
+        mostrarNotificacion(error.message || error, 'error');
     }
 }
 
-//levanta todos los valores d los inputs
+//levanta todos los valores d los inputs con validación
 function obtenerParametros() {
-    return {
+    const modoLibre = document.getElementById('modo-libre').checked;
+    
+    const params = {
         stm: Number(document.getElementById('stm').value),
         vr: Number(document.getElementById('vr').value),
         tt1s: Number(document.getElementById('tt1s').value),
@@ -196,12 +303,95 @@ function obtenerParametros() {
         requests: document.getElementById('requests').value,
         nstep: Number(document.getElementById('n-step').value)
     };
+    
+    // Validar que no estén vacíos (siempre obligatorio)
+    if (!params.stm || params.stm <= 0) {
+        mostrarErrorCampo('stm', 'Ingrese el tiempo de búsqueda (STM). Debe ser mayor a 0.');
+        throw new Error('Complete el campo STM');
+    }
+    
+    if (!params.vr || params.vr <= 0) {
+        mostrarErrorCampo('vr', 'Ingrese la velocidad rotacional (VR). Debe ser mayor a 0.');
+        throw new Error('Complete el campo VR');
+    }
+    
+    if (!params.tt1s || params.tt1s <= 0) {
+        mostrarErrorCampo('tt1s', 'Ingrese el tiempo de transferencia (TT1S). Debe ser mayor a 0.');
+        throw new Error('Complete el campo TT1S');
+    }
+    
+    if (!params.tb || params.tb <= 0) {
+        mostrarErrorCampo('tb', 'Ingrese bloques por pista (TB). Debe ser mayor a 0.');
+        throw new Error('Complete el campo TB');
+    }
+    
+    if (!params.tp || params.tp <= 0) {
+        mostrarErrorCampo('tp', 'Ingrese total de platos (TP). Debe ser mayor a 0.');
+        throw new Error('Complete el campo TP');
+    }
+    
+    if (!params.pc || params.pc <= 0) {
+        mostrarErrorCampo('pc', 'Ingrese platos por cilindro (PC). Debe ser mayor a 0.');
+        throw new Error('Complete el campo PC');
+    }
+    
+    if (!params.sc || params.sc <= 0) {
+        mostrarErrorCampo('sc', 'Ingrese sectores por cilindro (SC). Debe ser mayor a 0.');
+        throw new Error('Complete el campo SC');
+    }
+    
+    if (isNaN(params.posInicial) || params.posInicial < 0) {
+        mostrarErrorCampo('initial-position', 'Ingrese la posición inicial del cabezal (≥ 0)');
+        throw new Error('Complete el campo Posición Inicial');
+    }
+    
+    // Validar relación PC <= TP (siempre obligatorio)
+    if (params.pc > params.tp) {
+        mostrarErrorCampo('pc', `PC no puede ser mayor que TP (${params.tp})`);
+        throw new Error('PC mayor que TP');
+    }
+    
+    // Si está en modo estricto, validar rangos recomendados
+    if (!modoLibre) {
+        if (params.stm < 0.1 || params.stm > 1.0) {
+            mostrarErrorCampo('stm', 'STM fuera de rango recomendado (0.1 - 1.0 ms). Active "Modo Libre" para usar valores personalizados.');
+            throw new Error('STM fuera de rango');
+        }
+        
+        if (params.vr < 5400 || params.vr > 15000) {
+            mostrarErrorCampo('vr', 'VR fuera de rango recomendado (5400 - 15000 RPM). Active "Modo Libre" para usar valores personalizados.');
+            throw new Error('VR fuera de rango');
+        }
+        
+        if (params.tt1s < 0.1 || params.tt1s > 1.0) {
+            mostrarErrorCampo('tt1s', 'TT1S fuera de rango recomendado (0.1 - 1.0 ms). Active "Modo Libre" para usar valores personalizados.');
+            throw new Error('TT1S fuera de rango');
+        }
+        
+        if (params.tb < 100 || params.tb > 1000) {
+            mostrarErrorCampo('tb', 'TB fuera de rango recomendado (100 - 1000 bloques). Active "Modo Libre" para usar valores personalizados.');
+            throw new Error('TB fuera de rango');
+        }
+        
+        if (params.tp < 1 || params.tp > 8) {
+            mostrarErrorCampo('tp', 'TP fuera de rango recomendado (1 - 8 platos). Active "Modo Libre" para usar valores personalizados.');
+            throw new Error('TP fuera de rango');
+        }
+        
+        if (params.sc < 32 || params.sc > 256) {
+            mostrarErrorCampo('sc', 'SC fuera de rango recomendado (32 - 256 sectores). Active "Modo Libre" para usar valores personalizados.');
+            throw new Error('SC fuera de rango');
+        }
+    }
+    
+    return params;
 }
 
 //convierte el string d peticiones en objetos PeticionDisco
 function procesarPeticiones(requestsStr) {
-    if (!requestsStr) {
-        throw 'No se han ingresado peticiones';
+    if (!requestsStr || requestsStr.trim() === '') {
+        mostrarErrorCampo('requests', 'Ingrese la lista de peticiones separadas por comas. Mínimo 15 peticiones.');
+        throw new Error('No se han ingresado peticiones');
     }
 
     //separo x comas y limpio espacios
@@ -211,13 +401,19 @@ function procesarPeticiones(requestsStr) {
         .map(n => {
             const num = Number(n);
             if (isNaN(num)) {
-                throw `Valor inválido encontrado: "${n}". Todos los valores deben ser números.`;
+                mostrarErrorCampo('requests', `Valor inválido: "${n}". Solo se permiten números separados por comas.`);
+                throw new Error(`Petición inválida: "${n}"`);
+            }
+            if (num < 0) {
+                mostrarErrorCampo('requests', `Valor negativo no permitido: ${n}. Los cilindros deben ser ≥ 0.`);
+                throw new Error('Cilindro negativo');
             }
             return num;
         });
         
     if(numeros.length < 15) {
-        throw 'Necesito mínimo 15 peticiones!';
+        mostrarErrorCampo('requests', `Insuficientes peticiones: ${numeros.length}/15. Agregue ${15 - numeros.length} más.`);
+        throw new Error('Mínimo 15 peticiones requeridas');
     }
     
     //convierto cada numero en una PeticionDisco y calculo sus tiempos
