@@ -180,6 +180,17 @@ window.addEventListener('load', () => {
     //cuando cambia el modo de validación
     document.getElementById('modo-libre').addEventListener('change', cambiarModoValidacion);
     
+    //cuando cambia el tipo de cálculo a mostrar
+    const tipoCalculoSelect = document.getElementById('tipo-calculo');
+    if (tipoCalculoSelect) {
+        tipoCalculoSelect.addEventListener('change', function() {
+            // Obtener las peticiones actuales de la última simulación
+            if (listaPeticiones && listaPeticiones.length > 0) {
+                mostrarCalculoDetallado(this.value, listaPeticiones);
+            }
+        });
+    }
+    
     //agrego boton para probar casos d prueba
     const btnTest = document.createElement('button');
     btnTest.textContent = 'Probar Casos de Prueba';
@@ -462,6 +473,9 @@ function mostrarResultados(peticiones, algoritmo) {
         return;
     }
 
+    // Guardar peticiones procesadas globalmente para el selector de cálculos
+    listaPeticiones = peticiones;
+
     //muestro la seccion d resultados
     document.getElementById('seccion-resultados').classList.remove('oculto');
     
@@ -478,6 +492,9 @@ function mostrarResultados(peticiones, algoritmo) {
     let tiempoTransferenciaTotal = 0;
     let tiempoAccesoTotal = 0;
     let distanciaTotal = 0;
+    
+    // Empezamos desde la posición inicial del cabezal
+    let posicionAnterior = configDisco.posicionActual;
     
     //limpio la tabla
     const tabla = document.getElementById('sequence-table').getElementsByTagName('tbody')[0];
@@ -501,10 +518,9 @@ function mostrarResultados(peticiones, algoritmo) {
         tiempoTransferenciaTotal += tiempoTransferencia;
         tiempoAccesoTotal += tiempoTotal;
         
-        //calculo distancia con la anterior
-        if(i > 0) {
-            distanciaTotal += Math.abs(p.cilindro - peticiones[i-1].cilindro);
-        }
+        //calculo distancia desde la posición anterior (incluye la posición inicial para la primera petición)
+        distanciaTotal += Math.abs(p.cilindro - posicionAnterior);
+        posicionAnterior = p.cilindro;
         
         //agrego la fila a la tabla
         const fila = tabla.insertRow();
@@ -526,6 +542,9 @@ function mostrarResultados(peticiones, algoritmo) {
     document.getElementById('tiempo-rotacion-total').textContent = tiempoRotacionTotal.toFixed(2);
     document.getElementById('tiempo-transferencia-total').textContent = tiempoTransferenciaTotal.toFixed(2);
     document.getElementById('tiempo-acceso-total').textContent = tiempoAccesoTotal.toFixed(2);
+    
+    //muestro los cálculos detallados (por defecto distancia) usando la posición inicial del disco
+    mostrarCalculoDetallado('distancia', peticiones, configDisco.posicionActual);
     
     //dibujo el grafico
     dibujarGrafico(cilindros, tiempos);
@@ -556,10 +575,12 @@ async function ejecutarCasosPrueba() {
                 //calculo metricas
                 let distTotal = 0;
                 let tiempoTotal = 0;
+                let posAnterior = caso.posicionInicial;
                 
-                for(let i = 1; i < resultado.length; i++) {
-                    distTotal += Math.abs(resultado[i].cilindro - resultado[i-1].cilindro);
-                    tiempoTotal += resultado[i].tiempoTotal;
+                for(let i = 0; i < resultado.length; i++) {
+                    distTotal += Math.abs(resultado[i].cilindro - posAnterior);
+                    tiempoTotal += resultado[i].tiempoAccesoTotal || 0;
+                    posAnterior = resultado[i].cilindro;
                 }
                 
                 resultados.push({
@@ -581,6 +602,119 @@ async function ejecutarCasosPrueba() {
     //muestro comparacion
     console.log('\nComparacion de algoritmos:');
     console.table(resultados);
+}
+
+// Función para mostrar los cálculos detallados
+function mostrarCalculoDetallado(tipoCalculo, peticiones, posicionInicialParam = null) {
+    const detalleDiv = document.getElementById('detalle-calculo');
+    const posInicial = posicionInicialParam !== null ? posicionInicialParam : configDisco.posicionActual;
+    let html = '';
+    
+    switch(tipoCalculo) {
+        case 'distancia':
+            html = '<span class="formula-titulo"><i class="fas fa-route"></i> Cálculo de Distancia Total</span>';
+            html += '<div class="paso"><span class="paso-numero">Fórmula:</span> Distancia = Σ |Cilindro<sub>actual</sub> - Cilindro<sub>anterior</sub>|</div>';
+            
+            let posAnterior = posInicial;
+            let suma = '';
+            let distTotal = 0;
+            
+            peticiones.forEach((p, i) => {
+                const dist = Math.abs(p.cilindro - posAnterior);
+                distTotal += dist;
+                html += `<div class="paso">`;
+                html += `<span class="paso-numero">Paso ${i + 1}:</span> `;
+                html += `De cilindro <span class="valor">${posAnterior}</span> `;
+                html += `→ <span class="valor">${p.cilindro}</span> `;
+                html += `= |${p.cilindro} - ${posAnterior}| = <span class="valor">${dist}</span> cilindros`;
+                html += `</div>`;
+                suma += (i > 0 ? ' + ' : '') + dist;
+                posAnterior = p.cilindro;
+            });
+            
+            html += `<div class="paso"><span class="paso-numero">Total:</span> ${suma} = <span class="valor">${distTotal}</span> cilindros</div>`;
+            html += `<div class="resultado-final"><i class="fas fa-check-circle"></i> Distancia Total Recorrida: ${distTotal} cilindros</div>`;
+            break;
+            
+        case 'busqueda':
+            html = '<span class="formula-titulo"><i class="fas fa-search"></i> Cálculo de Tiempo de Búsqueda</span>';
+            html += '<div class="paso"><span class="paso-numero">Fórmula:</span> Tiempo Búsqueda = Distancia × STM</div>';
+            html += `<div class="paso"><span class="paso-numero">STM:</span> <span class="valor">${configDisco.multiplicadorTiempoBusqueda}</span> ms/cilindro</div>`;
+            
+            let totalBusqueda = 0;
+            let posAnt = posInicial;
+            
+            peticiones.forEach((p, i) => {
+                const dist = Math.abs(p.cilindro - posAnt);
+                const tiempo = dist * configDisco.multiplicadorTiempoBusqueda;
+                totalBusqueda += tiempo;
+                
+                html += `<div class="paso">`;
+                html += `<span class="paso-numero">Petición ${i + 1}:</span> `;
+                html += `${dist} cilindros × ${configDisco.multiplicadorTiempoBusqueda} ms = <span class="valor">${tiempo.toFixed(2)}</span> ms`;
+                html += `</div>`;
+                posAnt = p.cilindro;
+            });
+            
+            html += `<div class="resultado-final"><i class="fas fa-clock"></i> Tiempo Total de Búsqueda: ${totalBusqueda.toFixed(2)} ms</div>`;
+            break;
+            
+        case 'rotacion':
+            html = '<span class="formula-titulo"><i class="fas fa-sync"></i> Cálculo de Tiempo de Rotación</span>';
+            html += '<div class="paso"><span class="paso-numero">Fórmula:</span> Latencia Rotacional = (60,000 ms / RPM) / 2</div>';
+            html += `<div class="paso"><span class="paso-numero">Velocidad:</span> <span class="valor">${configDisco.velocidadRotacional}</span> RPM</div>`;
+            
+            const msPerRev = (60 * 1000) / configDisco.velocidadRotacional;
+            const latencia = msPerRev / 2;
+            
+            html += `<div class="paso"><span class="paso-numero">Cálculo:</span> (60,000 / ${configDisco.velocidadRotacional}) / 2 = <span class="valor">${latencia.toFixed(2)}</span> ms por petición</div>`;
+            html += `<div class="paso"><span class="paso-numero">Cantidad de peticiones:</span> <span class="valor">${peticiones.length}</span></div>`;
+            
+            const totalRotacion = latencia * peticiones.length;
+            
+            html += `<div class="paso"><span class="paso-numero">Total:</span> ${latencia.toFixed(2)} ms × ${peticiones.length} = <span class="valor">${totalRotacion.toFixed(2)}</span> ms</div>`;
+            html += `<div class="resultado-final"><i class="fas fa-sync"></i> Tiempo Total de Rotación: ${totalRotacion.toFixed(2)} ms</div>`;
+            break;
+            
+        case 'transferencia':
+            html = '<span class="formula-titulo"><i class="fas fa-exchange-alt"></i> Cálculo de Tiempo de Transferencia</span>';
+            html += '<div class="paso"><span class="paso-numero">Fórmula:</span> Tiempo Transferencia = TT1S × Cantidad de Peticiones</div>';
+            html += `<div class="paso"><span class="paso-numero">TT1S:</span> <span class="valor">${configDisco.tiempoTransferenciaSector}</span> ms/sector</div>`;
+            html += `<div class="paso"><span class="paso-numero">Cantidad de peticiones:</span> <span class="valor">${peticiones.length}</span></div>`;
+            
+            const totalTransf = configDisco.tiempoTransferenciaSector * peticiones.length;
+            
+            html += `<div class="paso"><span class="paso-numero">Total:</span> ${configDisco.tiempoTransferenciaSector} ms × ${peticiones.length} = <span class="valor">${totalTransf.toFixed(2)}</span> ms</div>`;
+            html += `<div class="resultado-final"><i class="fas fa-exchange-alt"></i> Tiempo Total de Transferencia: ${totalTransf.toFixed(2)} ms</div>`;
+            break;
+            
+        case 'total':
+            html = '<span class="formula-titulo"><i class="fas fa-calculator"></i> Cálculo de Tiempo Total de Acceso</span>';
+            html += '<div class="paso"><span class="paso-numero">Fórmula:</span> Tiempo Total = Tiempo Búsqueda + Tiempo Rotación + Tiempo Transferencia</div>';
+            
+            let tBusqueda = 0, tRotacion = 0, tTransf = 0;
+            let posA = posInicial;
+            
+            peticiones.forEach((p) => {
+                const dist = Math.abs(p.cilindro - posA);
+                tBusqueda += dist * configDisco.multiplicadorTiempoBusqueda;
+                tRotacion += ((60 * 1000) / configDisco.velocidadRotacional) / 2;
+                tTransf += configDisco.tiempoTransferenciaSector;
+                posA = p.cilindro;
+            });
+            
+            html += `<div class="paso"><span class="paso-numero">Tiempo de Búsqueda:</span> <span class="valor">${tBusqueda.toFixed(2)}</span> ms</div>`;
+            html += `<div class="paso"><span class="paso-numero">Tiempo de Rotación:</span> <span class="valor">${tRotacion.toFixed(2)}</span> ms</div>`;
+            html += `<div class="paso"><span class="paso-numero">Tiempo de Transferencia:</span> <span class="valor">${tTransf.toFixed(2)}</span> ms</div>`;
+            
+            const total = tBusqueda + tRotacion + tTransf;
+            
+            html += `<div class="paso"><span class="paso-numero">Suma:</span> ${tBusqueda.toFixed(2)} + ${tRotacion.toFixed(2)} + ${tTransf.toFixed(2)} = <span class="valor">${total.toFixed(2)}</span> ms</div>`;
+            html += `<div class="resultado-final"><i class="fas fa-hourglass-end"></i> Tiempo Total de Acceso: ${total.toFixed(2)} ms</div>`;
+            break;
+    }
+    
+    detalleDiv.innerHTML = html;
 }
 
 //dibuja el grafico d movimiento del cabezal
