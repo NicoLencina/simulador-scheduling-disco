@@ -46,15 +46,89 @@ body {
 header {
     text-align: center;
     margin-bottom: 3rem;
-    padding: 2rem 0;
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    box-shadow: var(--sombra-fuerte);
+    color: white;
 }
 
 h1 {
-    color: var(--color-principal);
+    color: white;
     font-size: 2.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+h1 i {
+    font-size: 2.5rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.descripcion-header {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.descripcion-principal {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.95);
+    margin-bottom: 2rem;
+    font-weight: 400;
+}
+
+.objetivos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.objetivo-item {
+    background: rgba(255,255,255,0.15);
+    padding: 1.25rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--transicion);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.objetivo-item:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.objetivo-item i {
+    font-size: 2rem;
+    color: #ffd700;
+    min-width: 40px;
+}
+
+.objetivo-item span {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    text-align: left;
+    color: white;
 }
 
 /* Secciones */
@@ -736,6 +810,40 @@ tbody tr:nth-child(even):hover td {
 @media (max-width: 768px) {
     .contenedor {
         padding: 10px;    /* menos padding en mobile */
+    }
+    
+    header {
+        padding: 2rem 1rem;
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+        flex-direction: column;
+    }
+    
+    h1 i {
+        font-size: 2rem;
+    }
+    
+    .descripcion-principal {
+        font-size: 1rem;
+    }
+    
+    .objetivos {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .objetivo-item {
+        padding: 1rem;
+    }
+    
+    .objetivo-item i {
+        font-size: 1.5rem;
+    }
+    
+    .objetivo-item span {
+        font-size: 0.9rem;
     }
 
     .layout-formulario {
