@@ -294,6 +294,17 @@ input:checked + .switch-slider:before {
     grid-column: 1 / -1;  /* ocupa desde la primera hasta la ultima columna */
 }
 
+.peticiones-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.peticiones-header label {
+    margin-bottom: 0;  /* quitar margen porque ya está en el contenedor */
+}
+
 .grupo-peticiones textarea {
     min-height: 80px;
     resize: vertical;
@@ -397,9 +408,7 @@ input:checked + .switch-slider:before {
 
 /* boton de generar peticiones aleatorias */
 .boton-generar {
-    position: absolute;
-    right: 1rem;
-    top: 3.5rem;
+    position: relative;  /* cambiado de absolute a relative */
     width: 45px;
     height: 45px;
     padding: 0;
@@ -407,22 +416,28 @@ input:checked + .switch-slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--color-ok);
+    background: linear-gradient(135deg, #28A745 0%, #20C997 100%);
     color: white;
     border: none;
     cursor: pointer;
     transition: var(--transicion);
-    box-shadow: var(--sombra-suave);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    flex-shrink: 0;  /* evita que se encoja */
 }
 
 .boton-generar:hover {
-    background-color: #218838;
-    transform: scale(1.1);
-    box-shadow: var(--sombra-media);
+    background: linear-gradient(135deg, #218838 0%, #17A589 100%);
+    transform: scale(1.15) rotate(180deg);
+    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.5);
+}
+
+.boton-generar:active {
+    transform: scale(1.05) rotate(180deg);
 }
 
 .boton-generar i {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    transition: var(--transicion);
 }
 
 label {
@@ -491,8 +506,14 @@ textarea {
 }
 
 .boton-primario {
-    background-color: var(--color-principal);  /* azul para botones importantes */
-    box-shadow: var(--sombra-suave);  /* sombra sutil siempre */
+    background: linear-gradient(135deg, var(--color-principal) 0%, var(--color-hover) 100%);
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
+    transition: all 0.3s ease;
+}
+
+.boton-primario:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.5);
 }
 
 /* seccion donde se muestran los resultados con mas onda */
@@ -878,15 +899,55 @@ tbody tr:nth-child(even):hover td {
 }
 
 #simular {
-    padding: 1rem 3rem;
-    font-size: 1.1rem;
+    padding: 1.2rem 3.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 0.75rem;
+    background: linear-gradient(135deg, #1976D2 0%, #2196F3 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+#simular::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+#simular:hover {
+    background: linear-gradient(135deg, #1565C0 0%, #1E88E5 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(25, 118, 210, 0.6);
+}
+
+#simular:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+#simular:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.5);
 }
 
 #simular i {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    animation: pulse 2s ease-in-out infinite;
 }
 
 /* parametros del algoritmo */
@@ -921,17 +982,17 @@ tbody tr:nth-child(even):hover td {
 
 .img-disco-principal {
     width: 100%;
-    max-width: 280px;
+    max-width: 400px; /* Aumentado de 280px a 400px para mejor visibilidad */
     height: auto;
     border-radius: 8px;
     background: white;
-    padding: 10px;
+    padding: 15px; /* Aumentado padding de 10px a 15px */
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     transition: var(--transicion);
 }
 
 .img-disco-principal:hover {
-    transform: scale(1.05);
+    transform: scale(1.08); /* Aumentado de 1.05 a 1.08 para mejor zoom */
     box-shadow: 0 6px 12px rgba(0,0,0,0.3);
 }
 

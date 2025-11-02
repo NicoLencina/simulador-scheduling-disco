@@ -44,7 +44,7 @@
                         <button class="btn-autocompletar" id="btn-autocompletar">
                             <i class="fas fa-magic"></i> Autocompletar
                         </button>
-                        <div class="modo-validacion">
+                        <div class="modo-validacion" data-tooltip="Modo Estricto: valida que los valores estén en rangos recomendados. Modo Libre: permite ingresar cualquier valor sin restricciones para experimentación.">
                             <label class="switch-container">
                                 <input type="checkbox" id="modo-libre">
                                 <span class="switch-slider"></span>
@@ -72,53 +72,55 @@
                 <div class="layout-formulario">
                     <div class="grilla-formulario">
                         <div class="grupo-formulario" data-tooltip="Tiempo que tarda el cabezal en moverse de un cilindro a otro. Valores típicos: 0.1 a 1.0 ms por cilindro.">
-                            <label for="stm">STM:</label>
+                            <label for="stm">STM (Tiempo de Búsqueda):</label>
                             <input type="number" id="stm" required min="0" step="0.1" placeholder="0.1 - 1.0">
                             <span class="help-text">ms/cilindro</span>
                         </div>
                         <div class="grupo-formulario" data-tooltip="Velocidad a la que giran los platos del disco. Velocidades comunes: 5400, 7200, 10000, 15000 RPM.">
-                            <label for="vr">VR:</label>
+                            <label for="vr">VR (Velocidad Rotacional):</label>
                             <input type="number" id="vr" required min="0" placeholder="5400 - 15000">
                             <span class="help-text">RPM</span>
                         </div>
                         <div class="grupo-formulario" data-tooltip="Tiempo necesario para transferir un sector de datos. Típicamente entre 0.1 y 1.0 milisegundos por sector.">
-                            <label for="tt1s">TT1S:</label>
+                            <label for="tt1s">TT1S (Tiempo Transferencia/Sector):</label>
                             <input type="number" id="tt1s" required min="0" step="0.1" placeholder="0.1 - 1.0">
                             <span class="help-text">ms/sector</span>
                         </div>
                         <div class="grupo-formulario" data-tooltip="Cantidad de bloques de datos que caben en una pista del disco. Común entre 100 y 1000 bloques.">
-                            <label for="tb">TB:</label>
+                            <label for="tb">TB (Bloques por Pista):</label>
                             <input type="number" id="tb" required min="1" placeholder="100 - 1000">
                             <span class="help-text">bloques/pista</span>
                         </div>
                         <div class="grupo-formulario" data-tooltip="Número total de platos magnéticos en el disco duro. Los discos comunes tienen entre 1 y 8 platos.">
-                            <label for="tp">TP:</label>
+                            <label for="tp">TP (Total de Platos):</label>
                             <input type="number" id="tp" required min="1" placeholder="1 - 8">
                             <span class="help-text">platos</span>
                         </div>
                         <div class="grupo-formulario" data-tooltip="Número de platos que forman un cilindro (conjunto de pistas alineadas verticalmente). Debe ser ≤ TP.">
-                            <label for="pc">PC:</label>
+                            <label for="pc">PC (Platos por Cilindro):</label>
                             <input type="number" id="pc" required min="1" placeholder="1 - TP">
                             <span class="help-text">platos/cilindro</span>
                         </div>
                         <div class="grupo-formulario" data-tooltip="Número de sectores en un cilindro completo. Común entre 32 y 256 sectores por cilindro.">
-                            <label for="sc">SC:</label>
+                            <label for="sc">SC (Sectores por Cilindro):</label>
                             <input type="number" id="sc" required min="1" placeholder="32 - 256">
                             <span class="help-text">sectores/cilindro</span>
                         </div>
                         <div class="grupo-formulario" data-tooltip="Cilindro donde se encuentra inicialmente el cabezal de lectura/escritura antes de comenzar a procesar peticiones.">
-                            <label for="initial-position">Posición Inicial:</label>
+                            <label for="initial-position">Posición Inicial del Cabezal:</label>
                             <input type="number" id="initial-position" required min="0" placeholder="0 - 199">
                             <span class="help-text">cilindro</span>
                         </div>
                         
                         <!-- Lista de peticiones - ocupa toda la fila -->
                         <div class="grupo-formulario grupo-peticiones" data-tooltip="Lista de cilindros a acceder separados por comas. Mínimo 15 peticiones. Ejemplo: 45, 20, 88, 15, 92">
-                            <label for="requests">Lista de Peticiones:</label>
+                            <div class="peticiones-header">
+                                <label for="requests">Lista de Peticiones:</label>
+                                <button id="generar-random" class="boton boton-generar">
+                                    <i class="fas fa-dice"></i>
+                                </button>
+                            </div>
                             <textarea id="requests" rows="3" required placeholder="Ej: 45, 20, 88, 15, 92, 150, 5, 35, 78, 98, 120, 44, 65, 25, 100"></textarea>
-                            <button id="generar-random" class="boton boton-generar">
-                                <i class="fas fa-dice"></i>
-                            </button>
                             <span class="help-text">Mínimo 15 peticiones separadas por comas</span>
                         </div>
                     </div>

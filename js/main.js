@@ -68,17 +68,18 @@ const casosDePrueba = [
 
 // Función para autocompletar campos
 function autocompletarCampos() {
-    // Valores recomendados
+    // Valores recomendados basados en discos duros reales
+    // Ver documentos/VALORES_PARAMETROS.md para detalles técnicos
     const valoresRecomendados = {
-        stm: 0.1,
-        vr: 7200,
-        tt1s: 0.02,
-        tb: 64,
-        tp: 4,
-        pc: 2,
-        sc: 32,
-        'initial-position': 50,
-        requests: '0, 45, 20, 88, 15, 92, 150, 5, 35, 78, 98, 120, 44, 65, 25'
+        stm: 0.1,      // Seek Time Multiplier: 0.1 ms/cilindro (disco moderno rápido)
+        vr: 7200,      // Velocidad Rotacional: 7200 RPM (estándar para discos SATA)
+        tt1s: 0.1,     // Tiempo de Transferencia: 0.1 ms/sector (dentro del rango)
+        tb: 500,       // Bloques por pista: 500 (valor medio del rango 100-1000)
+        tp: 4,         // Total de platos: 4 (disco duro típico de 2TB)
+        pc: 2,         // Platos por cilindro: 2 (lectura en ambas caras)
+        sc: 128,       // Sectores por cilindro: 128 (valor medio del rango 32-256)
+        'initial-position': 50,  // Posición inicial: cilindro 50 (zona media)
+        requests: '45, 20, 88, 15, 92, 150, 5, 35, 78, 98, 120, 44, 65, 25, 100'  // 15 peticiones variadas
     };
 
     // Autocompletar cada campo con animación

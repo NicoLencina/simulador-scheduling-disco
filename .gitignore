@@ -1,0 +1,21 @@
+# Documentos de teoría
+documentos/VALORES_PARAMETROS.md
+documentos/guia_usuario.md
+
+
+# Node modules (si se usa npm en el futuro)
+node_modules/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
