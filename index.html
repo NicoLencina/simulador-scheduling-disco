@@ -110,6 +110,12 @@
                             </div>
                             <textarea id="requests" rows="3" required placeholder="Ej: 45, 20, 88, 15, 92, 150, 5, 35, 78, 98, 120, 44, 65, 25, 100"></textarea>
                             <span class="help-text">Mínimo 15 peticiones separadas por comas</span>
+                            <!-- Botón simular -->
+                            <div class="boton-simular-container">
+                                <button id="simular" class="boton boton-primario">
+                                    <i class="fas fa-play"></i> Simular
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="valores-recomendados">
@@ -134,11 +140,6 @@
                         <label for="n-step">Valor de N (para N-STEP-SCAN):</label>
                         <input type="number" id="n-step" min="1" value="4">
                     </div>
-                </div>
-                <div class="boton-simular-container">
-                    <button id="simular" class="boton boton-primario">
-                        <i class="fas fa-play"></i> Simular
-                    </button>
                 </div>
             </section>
 
