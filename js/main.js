@@ -1171,27 +1171,37 @@ function dibujarGraficoCircular(tiempoBusqueda, tiempoRotacion, tiempoTransferen
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radio = Math.min(canvas.width, canvas.height) / 3;
+    const centerY = (canvas.height / 2) - 40; // Subir el gráfico 40px
+    const radio = Math.min(canvas.width, canvas.height) / 3.5; // Radio más pequeño para dar espacio
     
     const total = tiempoBusqueda + tiempoRotacion + tiempoTransferencia;
     
     const datos = [
-        { label: 'Búsqueda', valor: tiempoBusqueda, color: '#667eea', porcentaje: (tiempoBusqueda / total * 100) },
-        { label: 'Rotación', valor: tiempoRotacion, color: '#764ba2', porcentaje: (tiempoRotacion / total * 100) },
-        { label: 'Transferencia', valor: tiempoTransferencia, color: '#f093fb', porcentaje: (tiempoTransferencia / total * 100) }
+        { label: 'Búsqueda', valor: tiempoBusqueda, color: '#667eea', colorBorde: '#4158b8', porcentaje: (tiempoBusqueda / total * 100) },
+        { label: 'Rotación', valor: tiempoRotacion, color: '#764ba2', colorBorde: '#4e2f6a', porcentaje: (tiempoRotacion / total * 100) },
+        { label: 'Transferencia', valor: tiempoTransferencia, color: '#f093fb', colorBorde: '#c055ce', porcentaje: (tiempoTransferencia / total * 100) }
     ];
     
     let anguloInicio = -Math.PI / 2;
+    const separacion = 3; // Separación en píxeles desde el centro (uniforme)
     
-    // Dibujar sectores
+    // Dibujar sectores con espaciado uniforme
     datos.forEach((dato, i) => {
         const anguloFin = anguloInicio + (dato.valor / total) * Math.PI * 2;
         
-        // Sector
+        // Calcular el ángulo medio del sector sin ajustes
+        const anguloMedioSector = (anguloInicio + anguloFin) / 2;
+        
+        // Desplazar el centro del sector hacia afuera
+        const offsetX = Math.cos(anguloMedioSector) * separacion;
+        const offsetY = Math.sin(anguloMedioSector) * separacion;
+        const centroDesplazadoX = centerX + offsetX;
+        const centroDesplazadoY = centerY + offsetY;
+        
+        // Sector con centro desplazado - SIN ajustar ángulos
         ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radio, anguloInicio, anguloFin);
+        ctx.moveTo(centroDesplazadoX, centroDesplazadoY);
+        ctx.arc(centroDesplazadoX, centroDesplazadoY, radio, anguloInicio, anguloFin);
         ctx.closePath();
         
         // Gradiente radial
@@ -1201,8 +1211,8 @@ function dibujarGraficoCircular(tiempoBusqueda, tiempoRotacion, tiempoTransferen
         ctx.fillStyle = gradiente;
         ctx.fill();
         
-        // Borde
-        ctx.strokeStyle = 'white';
+        // Borde del mismo color pero más oscuro
+        ctx.strokeStyle = dato.colorBorde;
         ctx.lineWidth = 3;
         ctx.stroke();
         
@@ -1211,32 +1221,48 @@ function dibujarGraficoCircular(tiempoBusqueda, tiempoRotacion, tiempoTransferen
         const textX = centerX + Math.cos(anguloMedio) * (radio * 0.7);
         const textY = centerY + Math.sin(anguloMedio) * (radio * 0.7);
         
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 14px Arial';
+        // Texto en gris claro con sombra para mejor legibilidad
+        ctx.shadowColor = 'rgba(131, 129, 129, 0.3)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        ctx.fillStyle = '#e0e0e0'; // Gris claro
+        ctx.font = 'bold 15px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(dato.porcentaje.toFixed(1) + '%', textX, textY);
         
+        // Resetear sombra
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        
         anguloInicio = anguloFin;
     });
     
-    // Leyenda
+    // Leyenda - vertical debajo del gráfico
     const leyendaX = 20;
-    let leyendaY = canvas.height - 80;
+    let leyendaY = canvas.height - 90; // Más abajo para estar debajo del gráfico
     
     datos.forEach((dato) => {
         // Cuadrado de color
         ctx.fillStyle = dato.color;
         ctx.fillRect(leyendaX, leyendaY, 15, 15);
         
+        // Borde del cuadrado
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(leyendaX, leyendaY, 15, 15);
+        
         // Texto
         ctx.fillStyle = '#212529';
-        ctx.font = '12px Arial';
+        ctx.font = 'bold 12px Arial';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         ctx.fillText(`${dato.label}: ${dato.valor.toFixed(2)} ms`, leyendaX + 25, leyendaY + 7);
         
-        leyendaY += 25;
+        leyendaY += 25; // Separación entre leyendas
     });
 }
 
