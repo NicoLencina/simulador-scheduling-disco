@@ -224,9 +224,34 @@
                     </div>
                 </div>
 
-                <div class="contenedor-grafico">
-                    <h3><i class="fas fa-chart-line"></i> Visualización del Movimiento del Cabezal</h3>
-                    <canvas id="grafico-movimiento"></canvas>
+                <!-- Contenedor de gráficos -->
+                <div class="contenedor-graficos-principal">
+                    <!-- Gráfico principal - Movimiento del cabezal -->
+                    <div class="contenedor-grafico grafico-completo">
+                        <h3><i class="fas fa-chart-line"></i> Movimiento del Cabezal</h3>
+                        <canvas id="grafico-movimiento"></canvas>
+                    </div>
+
+                    <!-- Gráficos secundarios en grid -->
+                    <div class="grid-graficos-secundarios">
+                        <!-- Gráfico de barras - Tiempos -->
+                        <div class="contenedor-grafico">
+                            <h3><i class="fas fa-chart-bar"></i> Distribución de Tiempos</h3>
+                            <canvas id="grafico-tiempos"></canvas>
+                        </div>
+
+                        <!-- Gráfico circular - Proporción de tiempos -->
+                        <div class="contenedor-grafico">
+                            <h3><i class="fas fa-chart-pie"></i> Proporción de Tiempos</h3>
+                            <canvas id="grafico-circular"></canvas>
+                        </div>
+
+                        <!-- Gráfico de distancias -->
+                        <div class="contenedor-grafico">
+                            <h3><i class="fas fa-route"></i> Distancias por Petición</h3>
+                            <canvas id="grafico-distancias"></canvas>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="secuencia-peticiones">

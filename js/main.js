@@ -546,8 +546,11 @@ function mostrarResultados(peticiones, algoritmo) {
     //muestro los cálculos detallados (por defecto distancia) usando la posición inicial del disco
     mostrarCalculoDetallado('distancia', peticiones, configDisco.posicionActual);
     
-    //dibujo el grafico
+    //dibujo todos los graficos
     dibujarGrafico(cilindros, tiempos);
+    dibujarGraficoTiempos(tiempoBusquedaTotal, tiempoRotacionTotal, tiempoTransferenciaTotal);
+    dibujarGraficoCircular(tiempoBusquedaTotal, tiempoRotacionTotal, tiempoTransferenciaTotal);
+    dibujarGraficoDistancias(peticiones, configDisco.posicionActual);
 }
 
 //funcion para probar todos los algoritmos con casos d prueba
@@ -717,37 +720,492 @@ function mostrarCalculoDetallado(tipoCalculo, peticiones, posicionInicialParam =
     detalleDiv.innerHTML = html;
 }
 
-//dibuja el grafico d movimiento del cabezal
+//dibuja el grafico d movimiento del cabezal - versión mejorada
 function dibujarGrafico(cilindros, tiempos) {
     const canvas = document.getElementById('grafico-movimiento');
+    if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
     
-    //limpio el canvas
+    // Ajustar tamaño del canvas al contenedor
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 500;
+    
+    // Márgenes más grandes para etiquetas
+    const margenIzq = 80;
+    const margenDer = 40;
+    const margenTop = 40;
+    const margenBot = 60;
+    
+    const anchoGrafico = canvas.width - margenIzq - margenDer;
+    const altoGrafico = canvas.height - margenTop - margenBot;
+    
+    // Limpiar canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    //calculo escalas
-    const maxCilindro = Math.max(...cilindros);
-    const maxTiempo = Math.max(...tiempos);
+    // Fondo con gradiente
+    const gradienteFondo = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradienteFondo.addColorStop(0, '#f8f9fa');
+    gradienteFondo.addColorStop(1, '#ffffff');
+    ctx.fillStyle = gradienteFondo;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    const escalaX = (canvas.width - 40) / maxTiempo;
-    const escalaY = (canvas.height - 40) / maxCilindro;
+    // Calcular escalas
+    const maxCilindro = Math.max(...cilindros, configDisco.posicionActual);
+    const minCilindro = Math.min(...cilindros, configDisco.posicionActual, 0);
+    const rangoCilindros = maxCilindro - minCilindro || 1;
     
-    //dibujo ejes
-    ctx.beginPath();
-    ctx.moveTo(20, 20);
-    ctx.lineTo(20, canvas.height - 20);
-    ctx.lineTo(canvas.width - 20, canvas.height - 20);
-    ctx.stroke();
+    // Agregar la posición inicial al principio
+    const cilindrosCompletos = [configDisco.posicionActual, ...cilindros];
+    const tiemposCompletos = [0, ...tiempos];
     
-    //dibujo linea d movimiento
-    ctx.beginPath();
-    ctx.moveTo(20, canvas.height - 20 - (cilindros[0] * escalaY));
+    const escalaX = anchoGrafico / (cilindrosCompletos.length - 1);
+    const escalaY = altoGrafico / rangoCilindros;
     
-    for(let i = 1; i < cilindros.length; i++) {
-        const x = 20 + (tiempos[i] * escalaX);
-        const y = canvas.height - 20 - (cilindros[i] * escalaY);
-        ctx.lineTo(x, y);
+    // Función auxiliar para convertir coordenadas
+    const toCanvasX = (indice) => margenIzq + (indice * escalaX);
+    const toCanvasY = (cilindro) => margenTop + altoGrafico - ((cilindro - minCilindro) * escalaY);
+    
+    // Dibujar cuadrícula horizontal (cilindros)
+    ctx.strokeStyle = '#e9ecef';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    
+    const numLineasH = 10;
+    const stepCilindro = rangoCilindros / numLineasH;
+    
+    for (let i = 0; i <= numLineasH; i++) {
+        const cilindro = minCilindro + (i * stepCilindro);
+        const y = toCanvasY(cilindro);
+        
+        ctx.beginPath();
+        ctx.moveTo(margenIzq, y);
+        ctx.lineTo(canvas.width - margenDer, y);
+        ctx.stroke();
+        
+        // Etiquetas del eje Y
+        ctx.fillStyle = '#495057';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.round(cilindro), margenIzq - 10, y + 4);
     }
     
+    ctx.setLineDash([]);
+    
+    // Dibujar ejes principales
+    ctx.strokeStyle = '#495057';
+    ctx.lineWidth = 2;
+    
+    // Eje Y
+    ctx.beginPath();
+    ctx.moveTo(margenIzq, margenTop);
+    ctx.lineTo(margenIzq, canvas.height - margenBot);
     ctx.stroke();
+    
+    // Eje X
+    ctx.beginPath();
+    ctx.moveTo(margenIzq, canvas.height - margenBot);
+    ctx.lineTo(canvas.width - margenDer, canvas.height - margenBot);
+    ctx.stroke();
+    
+    // Etiquetas de los ejes
+    ctx.fillStyle = '#212529';
+    ctx.font = 'bold 14px Arial';
+    
+    // Etiqueta eje Y
+    ctx.save();
+    ctx.translate(20, canvas.height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText('Cilindro', 0, 0);
+    ctx.restore();
+    
+    // Etiqueta eje X
+    ctx.textAlign = 'center';
+    ctx.fillText('Secuencia de Peticiones', canvas.width / 2, canvas.height - 10);
+    
+    // Dibujar línea de movimiento con gradiente
+    const gradienteLinea = ctx.createLinearGradient(margenIzq, 0, canvas.width - margenDer, 0);
+    gradienteLinea.addColorStop(0, '#667eea');
+    gradienteLinea.addColorStop(0.5, '#764ba2');
+    gradienteLinea.addColorStop(1, '#f093fb');
+    
+    ctx.strokeStyle = gradienteLinea;
+    ctx.lineWidth = 3;
+    ctx.shadowColor = 'rgba(102, 126, 234, 0.4)';
+    ctx.shadowBlur = 8;
+    
+    ctx.beginPath();
+    ctx.moveTo(toCanvasX(0), toCanvasY(cilindrosCompletos[0]));
+    
+    for (let i = 1; i < cilindrosCompletos.length; i++) {
+        ctx.lineTo(toCanvasX(i), toCanvasY(cilindrosCompletos[i]));
+    }
+    ctx.stroke();
+    
+    // Resetear sombra
+    ctx.shadowBlur = 0;
+    
+    // Dibujar puntos en cada petición
+    cilindrosCompletos.forEach((cilindro, i) => {
+        const x = toCanvasX(i);
+        const y = toCanvasY(cilindro);
+        
+        // Punto exterior (más grande)
+        ctx.fillStyle = i === 0 ? '#28A745' : '#1976D2';
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Punto interior (blanco)
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Etiqueta del número de petición
+        if (i % 2 === 0 || cilindrosCompletos.length <= 20) {
+            ctx.fillStyle = '#495057';
+            ctx.font = 'bold 11px Arial';
+            ctx.textAlign = 'center';
+            
+            // Alternar posición de etiquetas
+            const offsetY = (i % 4 < 2) ? -15 : 25;
+            ctx.fillText(i === 0 ? 'Inicio' : `#${i}`, x, canvas.height - margenBot + offsetY);
+        }
+        
+        // Mostrar número de cilindro en cada punto
+        ctx.fillStyle = i === 0 ? '#28A745' : '#764ba2';
+        ctx.font = 'bold 11px Arial';
+        ctx.textAlign = 'left';
+        
+        // Posicionar a la derecha del punto
+        const offsetX = 12;
+        const etiquetaY = y + 4;
+        
+        // Fondo blanco para mejor legibilidad
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        const textoAncho = ctx.measureText(cilindro.toString()).width;
+        ctx.fillRect(x + offsetX - 2, etiquetaY - 10, textoAncho + 4, 14);
+        
+        // Texto del cilindro
+        ctx.fillStyle = i === 0 ? '#28A745' : '#764ba2';
+        ctx.fillText(cilindro, x + offsetX, etiquetaY);
+    });
+    
+    // Leyenda
+    const leyendaY = margenTop - 15;
+    
+    // Punto de inicio
+    ctx.fillStyle = '#28A745';
+    ctx.beginPath();
+    ctx.arc(margenIzq + 20, leyendaY, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#495057';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('Posición Inicial', margenIzq + 35, leyendaY + 4);
+    
+    // Puntos de peticiones
+    ctx.fillStyle = '#1976D2';
+    ctx.beginPath();
+    ctx.arc(margenIzq + 180, leyendaY, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillText('Peticiones', margenIzq + 195, leyendaY + 4);
+    
+    // Calcular y mostrar distancia total
+    let distanciaTotal = 0;
+    for (let i = 1; i < cilindrosCompletos.length; i++) {
+        distanciaTotal += Math.abs(cilindrosCompletos[i] - cilindrosCompletos[i-1]);
+    }
+    
+    // Mostrar métrica destacada
+    ctx.fillStyle = '#764ba2';
+    ctx.font = 'bold 13px Arial';
+    ctx.textAlign = 'right';
+    ctx.fillText(`Distancia: ${distanciaTotal} cilindros`, canvas.width - margenDer - 10, leyendaY + 4);
+}
+
+// Gráfico de barras - Distribución de tiempos
+function dibujarGraficoTiempos(tiempoBusqueda, tiempoRotacion, tiempoTransferencia) {
+    const canvas = document.getElementById('grafico-tiempos');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 300;
+    
+    const margen = 60;
+    const anchoGrafico = canvas.width - (margen * 2);
+    const altoGrafico = canvas.height - (margen * 2);
+    
+    // Limpiar
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Fondo
+    ctx.fillStyle = '#f8f9fa';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Datos
+    const datos = [
+        { label: 'Búsqueda', valor: tiempoBusqueda, color: '#667eea' },
+        { label: 'Rotación', valor: tiempoRotacion, color: '#764ba2' },
+        { label: 'Transferencia', valor: tiempoTransferencia, color: '#f093fb' }
+    ];
+    
+    const maxValor = Math.max(...datos.map(d => d.valor));
+    const escalaY = altoGrafico / maxValor;
+    const anchoBarra = anchoGrafico / (datos.length * 2);
+    
+    // Dibujar barras
+    datos.forEach((dato, i) => {
+        const x = margen + (i * anchoBarra * 2) + anchoBarra / 2;
+        const alturaBarra = dato.valor * escalaY;
+        const y = canvas.height - margen - alturaBarra;
+        
+        // Gradiente para la barra
+        const gradiente = ctx.createLinearGradient(x, y, x, canvas.height - margen);
+        gradiente.addColorStop(0, dato.color);
+        gradiente.addColorStop(1, dato.color + 'AA');
+        
+        // Barra
+        ctx.fillStyle = gradiente;
+        ctx.fillRect(x, y, anchoBarra, alturaBarra);
+        
+        // Borde de la barra
+        ctx.strokeStyle = dato.color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, anchoBarra, alturaBarra);
+        
+        // Valor encima de la barra
+        ctx.fillStyle = '#212529';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(dato.valor.toFixed(2) + ' ms', x + anchoBarra / 2, y - 10);
+        
+        // Etiqueta debajo
+        ctx.fillStyle = '#495057';
+        ctx.font = '12px Arial';
+        ctx.fillText(dato.label, x + anchoBarra / 2, canvas.height - margen + 25);
+    });
+    
+    // Título del eje Y
+    ctx.save();
+    ctx.translate(15, canvas.height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#495057';
+    ctx.font = 'bold 12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Tiempo (ms)', 0, 0);
+    ctx.restore();
+}
+
+// Gráfico circular - Proporción de tiempos
+function dibujarGraficoCircular(tiempoBusqueda, tiempoRotacion, tiempoTransferencia) {
+    const canvas = document.getElementById('grafico-circular');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 300;
+    
+    // Limpiar
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Fondo
+    ctx.fillStyle = '#f8f9fa';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radio = Math.min(canvas.width, canvas.height) / 3;
+    
+    const total = tiempoBusqueda + tiempoRotacion + tiempoTransferencia;
+    
+    const datos = [
+        { label: 'Búsqueda', valor: tiempoBusqueda, color: '#667eea', porcentaje: (tiempoBusqueda / total * 100) },
+        { label: 'Rotación', valor: tiempoRotacion, color: '#764ba2', porcentaje: (tiempoRotacion / total * 100) },
+        { label: 'Transferencia', valor: tiempoTransferencia, color: '#f093fb', porcentaje: (tiempoTransferencia / total * 100) }
+    ];
+    
+    let anguloInicio = -Math.PI / 2;
+    
+    // Dibujar sectores
+    datos.forEach((dato, i) => {
+        const anguloFin = anguloInicio + (dato.valor / total) * Math.PI * 2;
+        
+        // Sector
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radio, anguloInicio, anguloFin);
+        ctx.closePath();
+        
+        // Gradiente radial
+        const gradiente = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radio);
+        gradiente.addColorStop(0, dato.color + 'FF');
+        gradiente.addColorStop(1, dato.color + 'AA');
+        ctx.fillStyle = gradiente;
+        ctx.fill();
+        
+        // Borde
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        // Porcentaje en el sector
+        const anguloMedio = (anguloInicio + anguloFin) / 2;
+        const textX = centerX + Math.cos(anguloMedio) * (radio * 0.7);
+        const textY = centerY + Math.sin(anguloMedio) * (radio * 0.7);
+        
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(dato.porcentaje.toFixed(1) + '%', textX, textY);
+        
+        anguloInicio = anguloFin;
+    });
+    
+    // Leyenda
+    const leyendaX = 20;
+    let leyendaY = canvas.height - 80;
+    
+    datos.forEach((dato) => {
+        // Cuadrado de color
+        ctx.fillStyle = dato.color;
+        ctx.fillRect(leyendaX, leyendaY, 15, 15);
+        
+        // Texto
+        ctx.fillStyle = '#212529';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${dato.label}: ${dato.valor.toFixed(2)} ms`, leyendaX + 25, leyendaY + 7);
+        
+        leyendaY += 25;
+    });
+}
+
+// Gráfico de distancias por petición
+function dibujarGraficoDistancias(peticiones, posInicial) {
+    const canvas = document.getElementById('grafico-distancias');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 300;
+    
+    const margenIzq = 50;
+    const margenDer = 20;
+    const margenTop = 30;
+    const margenBot = 40;
+    
+    const anchoGrafico = canvas.width - margenIzq - margenDer;
+    const altoGrafico = canvas.height - margenTop - margenBot;
+    
+    // Limpiar
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Fondo
+    ctx.fillStyle = '#f8f9fa';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Calcular distancias
+    const distancias = [];
+    let posAnterior = posInicial;
+    
+    peticiones.forEach((p, i) => {
+        const dist = Math.abs(p.cilindro - posAnterior);
+        distancias.push({ indice: i + 1, distancia: dist });
+        posAnterior = p.cilindro;
+    });
+    
+    const maxDistancia = Math.max(...distancias.map(d => d.distancia));
+    const escalaY = altoGrafico / maxDistancia;
+    const anchoColumna = anchoGrafico / distancias.length;
+    
+    // Dibujar línea base
+    ctx.strokeStyle = '#dee2e6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(margenIzq, canvas.height - margenBot);
+    ctx.lineTo(canvas.width - margenDer, canvas.height - margenBot);
+    ctx.stroke();
+    
+    // Dibujar columnas
+    distancias.forEach((dato, i) => {
+        const x = margenIzq + (i * anchoColumna);
+        const altura = dato.distancia * escalaY;
+        const y = canvas.height - margenBot - altura;
+        
+        // Color según la magnitud
+        let color;
+        if (dato.distancia > maxDistancia * 0.7) {
+            color = '#DC3545'; // Rojo para distancias grandes
+        } else if (dato.distancia > maxDistancia * 0.4) {
+            color = '#FFC107'; // Amarillo para distancias medias
+        } else {
+            color = '#28A745'; // Verde para distancias cortas
+        }
+        
+        // Gradiente
+        const gradiente = ctx.createLinearGradient(x, y, x, canvas.height - margenBot);
+        gradiente.addColorStop(0, color);
+        gradiente.addColorStop(1, color + '80');
+        
+        ctx.fillStyle = gradiente;
+        ctx.fillRect(x + 2, y, anchoColumna - 4, altura);
+        
+        // Valor encima si hay espacio
+        if (distancias.length <= 20 && dato.distancia > 0) {
+            ctx.fillStyle = '#212529';
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(dato.distancia, x + anchoColumna / 2, y - 5);
+        }
+        
+        // Número de petición debajo (solo algunos si hay muchas)
+        if (distancias.length <= 20 || i % Math.ceil(distancias.length / 15) === 0) {
+            ctx.fillStyle = '#495057';
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(dato.indice, x + anchoColumna / 2, canvas.height - margenBot + 15);
+        }
+    });
+    
+    // Etiqueta eje Y
+    ctx.save();
+    ctx.translate(15, canvas.height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#495057';
+    ctx.font = 'bold 12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Distancia (cilindros)', 0, 0);
+    ctx.restore();
+    
+    // Etiqueta eje X
+    ctx.fillStyle = '#495057';
+    ctx.font = 'bold 12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Número de Petición', canvas.width / 2, canvas.height - 5);
+    
+    // Leyenda de colores
+    const leyendas = [
+        { color: '#28A745', texto: 'Corta (≤40%)' },
+        { color: '#FFC107', texto: 'Media (40-70%)' },
+        { color: '#DC3545', texto: 'Larga (>70%)' }
+    ];
+    
+    let leyendaX = canvas.width - 150;
+    const leyendaY = margenTop;
+    
+    leyendas.forEach((leg, i) => {
+        ctx.fillStyle = leg.color;
+        ctx.fillRect(leyendaX, leyendaY + (i * 20), 12, 12);
+        
+        ctx.fillStyle = '#495057';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(leg.texto, leyendaX + 18, leyendaY + (i * 20) + 10);
+    });
 }
