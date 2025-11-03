@@ -212,7 +212,14 @@ window.addEventListener('load', () => {
                         el.remove();
                     }
                 });
-                btnExpandir.innerHTML = '<i class="fas fa-chevron-down"></i> Ver más';
+                
+                // Contar cuántos pasos hay ocultos
+                const pasosOcultos = detalleDiv.getAttribute('data-pasos-ocultos') || 0;
+                if (pasosOcultos > 0) {
+                    btnExpandir.innerHTML = `<i class="fas fa-chevron-down"></i> Ver más (${pasosOcultos} ocultos)`;
+                } else {
+                    btnExpandir.innerHTML = '<i class="fas fa-chevron-down"></i> Ver más';
+                }
                 btnExpandir.classList.remove('expandido');
             } else {
                 // Expandir - agregar solo el contenido detallado
@@ -242,6 +249,31 @@ window.addEventListener('load', () => {
                     // No hay contenido adicional para mostrar
                     console.log('No hay contenido adicional para expandir');
                 }
+            }
+        });
+    }
+    
+    //botón expandir/colapsar tabla de peticiones
+    const btnExpandirTabla = document.getElementById('btn-expandir-tabla');
+    const tablaSecuencia = document.getElementById('sequence-table');
+    if (btnExpandirTabla && tablaSecuencia) {
+        btnExpandirTabla.addEventListener('click', function() {
+            const isExpanded = tablaSecuencia.classList.contains('tabla-expandida');
+            const totalFilas = tablaSecuencia.getElementsByTagName('tbody')[0].rows.length;
+            const filasOcultas = Math.max(0, totalFilas - 5);
+            
+            if (isExpanded) {
+                // Colapsar - mostrar solo primeras 5 filas
+                tablaSecuencia.classList.remove('tabla-expandida');
+                if (filasOcultas > 0) {
+                    btnExpandirTabla.innerHTML = `<i class="fas fa-chevron-down"></i> Ver más (${filasOcultas} ocultas)`;
+                } else {
+                    btnExpandirTabla.innerHTML = '<i class="fas fa-chevron-down"></i> Ver más';
+                }
+            } else {
+                // Expandir - mostrar todas las filas
+                tablaSecuencia.classList.add('tabla-expandida');
+                btnExpandirTabla.innerHTML = '<i class="fas fa-chevron-up"></i> Ver menos';
             }
         });
     }
@@ -544,9 +576,17 @@ function mostrarResultados(peticiones, algoritmo) {
     // Empezamos desde la posición inicial del cabezal
     let posicionAnterior = configDisco.posicionActual;
     
-    //limpio la tabla
-    const tabla = document.getElementById('sequence-table').getElementsByTagName('tbody')[0];
+    //limpio la tabla y reseteo el estado de expandir
+    const tablaSecuencia = document.getElementById('sequence-table');
+    const tabla = tablaSecuencia.getElementsByTagName('tbody')[0];
     tabla.innerHTML = '';
+    tablaSecuencia.classList.remove('tabla-expandida');
+    
+    // Resetear el botón de expandir tabla
+    const btnExpandirTabla = document.getElementById('btn-expandir-tabla');
+    if (btnExpandirTabla) {
+        btnExpandirTabla.innerHTML = '<i class="fas fa-chevron-down"></i> Ver más';
+    }
     
     //variables para el grafico
     const cilindros = [];
@@ -591,6 +631,16 @@ function mostrarResultados(peticiones, algoritmo) {
     document.getElementById('tiempo-transferencia-total').textContent = tiempoTransferenciaTotal.toFixed(2);
     document.getElementById('tiempo-acceso-total').textContent = tiempoAccesoTotal.toFixed(2);
     
+    // Actualizar el texto del botón de expandir tabla según la cantidad de filas
+    const totalFilas = peticiones.length;
+    const filasOcultas = Math.max(0, totalFilas - 5);
+    if (btnExpandirTabla && filasOcultas > 0) {
+        btnExpandirTabla.innerHTML = `<i class="fas fa-chevron-down"></i> Ver más (${filasOcultas} ocultas)`;
+        btnExpandirTabla.style.display = 'block';
+    } else if (btnExpandirTabla) {
+        btnExpandirTabla.style.display = 'none'; // Ocultar botón si hay 5 o menos filas
+    }
+    
     //muestro los cálculos detallados (por defecto distancia) usando la posición inicial del disco
     mostrarCalculoDetallado('distancia', peticiones, configDisco.posicionActual);
     
@@ -629,7 +679,8 @@ function mostrarCalculoDetallado(tipoCalculo, peticiones, posicionInicialParam =
             
             // Primeros 3 pasos
             posAnterior = posInicial;
-            for(let i = 0; i < Math.min(3, peticiones.length); i++) {
+            const pasosAMostrar = Math.min(3, peticiones.length);
+            for(let i = 0; i < pasosAMostrar; i++) {
                 const p = peticiones[i];
                 const dist = Math.abs(p.cilindro - posAnterior);
                 htmlResumido += `<div class="paso">`;
@@ -770,6 +821,15 @@ function mostrarCalculoDetallado(tipoCalculo, peticiones, posicionInicialParam =
     detalleDiv.setAttribute('data-resumido', htmlResumido);
     detalleDiv.setAttribute('data-completo', htmlCompleto);
     
+    // Contar elementos ocultos según el tipo de cálculo
+    let elementosOcultos = 0;
+    if (tipoCalculo === 'distancia') {
+        elementosOcultos = Math.max(0, peticiones.length - 3);
+    } else if (tipoCalculo === 'busqueda') {
+        elementosOcultos = peticiones.length; // todas las peticiones están ocultas en resumido
+    }
+    detalleDiv.setAttribute('data-pasos-ocultos', elementosOcultos);
+    
     console.log('Mostrando cálculo:', tipoCalculo);
     console.log('HTML Resumido length:', htmlResumido.length);
     console.log('HTML Completo length:', htmlCompleto.length);
@@ -777,7 +837,15 @@ function mostrarCalculoDetallado(tipoCalculo, peticiones, posicionInicialParam =
     // Resetear el botón expandir y limpiar contenido expandido previo
     const btnExpandir = document.getElementById('btn-expandir-calculo');
     if (btnExpandir) {
-        btnExpandir.innerHTML = '<i class="fas fa-chevron-down"></i> Ver más';
+        if (elementosOcultos > 0 && htmlCompleto.trim() !== '') {
+            btnExpandir.innerHTML = `<i class="fas fa-chevron-down"></i> Ver más (${elementosOcultos} ocultos)`;
+            btnExpandir.style.display = 'block';
+        } else if (htmlCompleto.trim() !== '') {
+            btnExpandir.innerHTML = '<i class="fas fa-chevron-down"></i> Ver más';
+            btnExpandir.style.display = 'block';
+        } else {
+            btnExpandir.style.display = 'none';
+        }
         btnExpandir.classList.remove('expandido');
     }
     
