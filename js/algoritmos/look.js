@@ -1,3 +1,6 @@
+//importo las funciones comunes
+import * as utils from '../utils.js';
+
 //LOOK (version mejorada d SCAN)
 //la idea es simple pero efectiva:
 //1. es igual q SCAN pero con un truco
@@ -19,61 +22,51 @@
 //- puede hacer q algunas peticiones esperen mas
 
 const algoritmoLOOK = (peticiones, configDisco) => {
-    //validaciones primero
-    if(!peticiones || !configDisco) {
-        throw new Error('faltan parametros para LOOK!');
-    }
+    //validaciones usando funcion comun
+    utils.validarParametrosBase(peticiones, configDisco, 'LOOK');
     
-    let posicionActual = configDisco.posicionActual;
-    let tiempoActual = 0;
-    //copio las peticiones para no modificar las originales
-    const peticionesPendientes = peticiones.map(p => p.clonar());
+    //inicializo estado usando funcion comun
+    let { posicionActual, tiempoActual } = utils.inicializarEstadoBase(configDisco);
+    
+    //copio las peticiones usando funcion comun
+    const peticionesPendientes = utils.clonarPeticiones(peticiones);
     const peticionesProcesadas = [];
     
-    //ordeno las peticiones x numero d cilindro (d menor a mayor)
-    //esto es clave para poder ir en una direccion
+    //ordeno por cilindro usando funcion comun
     peticionesPendientes.sort((a, b) => a.cilindro - b.cilindro);
     
-    //busco desde donde empezar segun donde esta el cabezal
-    let indiceInicial = 0;
-    //avanzo hasta encontrar la primera peticion mayor q la pos actual
-    while (indiceInicial < peticionesPendientes.length && 
-           peticionesPendientes[indiceInicial].cilindro < posicionActual) {
-        indiceInicial++;
-    }
+    //busco donde empezar usando funcion comun
+    let indiceInicial = utils.encontrarIndiceInicial(peticionesPendientes, posicionActual);
     
-    //primera pasada: voy subiendo hasta la ultima peticion
-    //a diferencia d SCAN, no voy hasta el final del disco
-    for (let i = indiceInicial; i < peticionesPendientes.length; i++) {
-        const peticionActual = peticionesPendientes[i];
-        //calculo todos los tiempos:
-        //- busqueda (mover el cabezal)
-        //- rotacion (esperar al sector)
-        //- transferencia (leer/escribir)
-        peticionActual.calcularTiempos(configDisco, posicionActual);
-        //marco cuando empece esta peticion
-        peticionActual.tiempoProceso = tiempoActual;
-        //actualizo tiempo total y muevo el cabezal
-        tiempoActual += peticionActual.tiempoAccesoTotal;
-        posicionActual = peticionActual.cilindro;
-        peticionesProcesadas.push(peticionActual);
-    }
+    //proceso en ambas direcciones
+    const procesarPeticionesEnDireccion = (inicio, fin, paso) => {
+        for (let i = inicio; paso > 0 ? i < fin : i >= fin; i += paso) {
+            const peticionActual = peticionesPendientes[i];
+            
+            //proceso la peticion usando funcion comun
+            const nuevoEstado = utils.procesarPeticion(
+                peticionActual,
+                configDisco,
+                posicionActual,
+                tiempoActual
+            );
+            
+            //actualizo estado
+            posicionActual = nuevoEstado.nuevaPosicion;
+            tiempoActual = nuevoEstado.nuevoTiempo;
+            
+            //agrego a procesadas
+            peticionesProcesadas.push(peticionActual);
+        }
+    };
     
-    //segunda pasada: bajo hasta la peticion mas baja
-    //igual q antes, no voy hasta el cilindro 0
-    for (let i = indiceInicial - 1; i >= 0; i--) {
-        const peticionActual = peticionesPendientes[i];
-        //mismos calculos q antes pero bajando
-        peticionActual.calcularTiempos(configDisco, posicionActual);
-        peticionActual.tiempoProceso = tiempoActual;
-        tiempoActual += peticionActual.tiempoAccesoTotal;
-        posicionActual = peticionActual.cilindro;
-        peticionesProcesadas.push(peticionActual);
-    }
+    //primera pasada: subiendo hasta la ultima peticion
+    procesarPeticionesEnDireccion(indiceInicial, peticionesPendientes.length, 1);
     
-    //devuelvo todas las peticiones ya procesadas
+    //segunda pasada: bajando hasta la primera peticion
+    procesarPeticionesEnDireccion(indiceInicial - 1, 0, -1);
+    
     return peticionesProcesadas;
 };
 
-//exporto para q lo use main.js
 export default algoritmoLOOK;

@@ -1,3 +1,6 @@
+//importo las funciones comunes
+import * as utils from '../utils.js';
+
 //algoritmo FIFO (First In First Out)
 //este es el mas facil de todos, xq:
 //1. agarra las peticiones en el orden q llegaron
@@ -8,32 +11,28 @@
 //contras: no optimiza nada, puede hacer q el cabezal se mueva como loco
 
 const algoritmoFIFO = (peticiones, configDisco) => {
-    //validar q me pasen los params necesarios
-    if(!peticiones || !configDisco) {
-        throw new Error('faltan parametros para FIFO!');
-    }
+    //validaciones usando funcion comun
+    utils.validarParametrosBase(peticiones, configDisco, 'FIFO');
     
-    let posicionActual = configDisco.posicionActual; //guardo donde empieza el cabezal
-    let tiempoActual = 0;   //para ir sumando los tiempos d cada peticion
+    //inicializo estado usando funcion comun
+    let { posicionActual, tiempoActual } = utils.inicializarEstadoBase(configDisco);
     
-    // proceso cada peticion en orden d llegada
+    //proceso cada peticion en orden de llegada (FIFO no necesita ordenar)
     return peticiones.map(peticion => {
-        //hago una copia para no modificar la original
+        //clono la peticion usando funcion comun
         const peticionProcesada = peticion.clonar();
         
-        //calculo cuanto tarda en:
-        //1. mover el cabezal hasta el cilindro (tiempo d busqueda)
-        //2. esperar q el sector este abajo del cabezal (tiempo d rotacion)
-        //3. leer/escribir los datos (tiempo d transferencia)
-        peticionProcesada.calcularTiempos(configDisco, posicionActual);
+        //proceso la peticion y actualizo estado usando funcion comun
+        const nuevoEstado = utils.procesarPeticion(
+            peticionProcesada, 
+            configDisco, 
+            posicionActual, 
+            tiempoActual
+        );
         
-        //guardo en q momento del tiempo total empece a procesar esta peticion
-        peticionProcesada.tiempoProceso = tiempoActual;
-        //sumo el tiempo q me tomo procesarla al total
-        tiempoActual += peticionProcesada.tiempoAccesoTotal;
-        
-        //actualizo donde quedo el cabezal para la siguiente
-        posicionActual = peticionProcesada.cilindro;
+        //actualizo estado para la siguiente peticion
+        posicionActual = nuevoEstado.nuevaPosicion;
+        tiempoActual = nuevoEstado.nuevoTiempo;
         
         return peticionProcesada;
     });

@@ -1,3 +1,6 @@
+//importo las funciones comunes
+import * as utils from '../utils.js';
+
 //C-SCAN (SCAN Circular)
 //es una version mejorada d SCAN:
 //1. sube atendiendo peticiones como SCAN normal
@@ -14,64 +17,59 @@
 //- el retorno al inicio consume tiempo
 
 const algoritmoCSCAN = (peticiones, configDisco) => {
-    //validaciones primero
-    if(!peticiones || !configDisco) {
-        throw new Error('faltan parametros para C-SCAN!');
-    }
+    //validaciones usando funcion comun
+    utils.validarParametrosBase(peticiones, configDisco, 'C-SCAN');
     
-    let posicionActual = configDisco.posicionActual;
-    let tiempoActual = 0;
-    //copio las peticiones para no tocar las originales
-    const peticionesPendientes = peticiones.map(p => p.clonar());
+    //inicializo estado usando funcion comun
+    let { posicionActual, tiempoActual } = utils.inicializarEstadoBase(configDisco);
+    
+    //copio las peticiones usando funcion comun
+    const peticionesPendientes = utils.clonarPeticiones(peticiones);
     const peticionesProcesadas = [];
     
-    //ordeno las peticiones x numero d cilindro
+    //ordeno por cilindro usando funcion comun
     peticionesPendientes.sort((a, b) => a.cilindro - b.cilindro);
     
-    //busco donde tengo q empezar segun donde esta el cabezal
-    let indiceInicial = 0;
-    while (indiceInicial < peticionesPendientes.length && 
-           peticionesPendientes[indiceInicial].cilindro < posicionActual) {
-        indiceInicial++;
-    }
+    //busco donde empezar usando funcion comun
+    let indiceInicial = utils.encontrarIndiceInicial(peticionesPendientes, posicionActual);
+    
+    //funcion auxiliar para procesar peticiones en una direccion
+    const procesarPeticionesEnRango = (inicio, fin) => {
+        for (let i = inicio; i < fin; i++) {
+            const peticionActual = peticionesPendientes[i];
+            
+            //proceso la peticion usando funcion comun
+            const nuevoEstado = utils.procesarPeticion(
+                peticionActual,
+                configDisco,
+                posicionActual,
+                tiempoActual
+            );
+            
+            //actualizo estado
+            posicionActual = nuevoEstado.nuevaPosicion;
+            tiempoActual = nuevoEstado.nuevoTiempo;
+            
+            //agrego a procesadas
+            peticionesProcesadas.push(peticionActual);
+        }
+    };
     
     //primera parte: proceso desde donde estoy hasta el final
-    for (let i = indiceInicial; i < peticionesPendientes.length; i++) {
-        const peticionActual = peticionesPendientes[i];
-        //calculo todos los tiempos para esta peticion
-        peticionActual.calcularTiempos(configDisco, posicionActual);
-        peticionActual.tiempoProceso = tiempoActual;
-        //actualizo tiempo total y posicion
-        tiempoActual += peticionActual.tiempoAccesoTotal;
-        posicionActual = peticionActual.cilindro;
-        peticionesProcesadas.push(peticionActual);
-    }
+    procesarPeticionesEnRango(indiceInicial, peticionesPendientes.length);
     
-    //si quedaron peticiones antes del punto inicial
-    //hay q volver al principio y procesarlas
+    //si quedan peticiones antes del punto inicial
     if (indiceInicial > 0) {
-        //calculo cuanto tarda en volver al principio
-        const tiempoRetorno = configDisco.calcularTiempoBusqueda(posicionActual, 0);
-        //sumo ese tiempo al total (el viaje d vuelta)
-        tiempoActual += tiempoRetorno;
+        //calculo y sumo el tiempo d retorno al principio
+        tiempoActual += configDisco.calcularTiempoBusqueda(posicionActual, 0);
         //muevo el cabezal al principio
         posicionActual = 0;
         
-        //proceso desde el principio hasta donde habia empezado
-        for (let i = 0; i < indiceInicial; i++) {
-            const peticionActual = peticionesPendientes[i];
-            //calculo tiempos como siempre
-            peticionActual.calcularTiempos(configDisco, posicionActual);
-            peticionActual.tiempoProceso = tiempoActual;
-            tiempoActual += peticionActual.tiempoAccesoTotal;
-            posicionActual = peticionActual.cilindro;
-            peticionesProcesadas.push(peticionActual);
-        }
+        //proceso desde el principio hasta el indice inicial
+        procesarPeticionesEnRango(0, indiceInicial);
     }
     
-    //devuelvo todas las peticiones ya procesadas
     return peticionesProcesadas;
 };
 
-//exporto para q lo use main.js
 export default algoritmoCSCAN;

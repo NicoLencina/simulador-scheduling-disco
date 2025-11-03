@@ -1,3 +1,6 @@
+//importo las funciones comunes
+import * as utils from '../utils.js';
+
 //F-SCAN (SCAN con colas)
 //este es un algoritmo mas complejo:
 //1. divide todas las peticiones en 2 grupos
@@ -25,71 +28,60 @@
 //- mas complejo d implementar
 
 const algoritmoFSCAN = (peticiones, configDisco) => {
-    //validaciones primero
-    if(!peticiones || !configDisco) {
-        throw new Error('faltan parametros para F-SCAN!');
-    }
+    //validaciones usando funcion comun
+    utils.validarParametrosBase(peticiones, configDisco, 'F-SCAN');
     
-    let posicionActual = configDisco.posicionActual;
-    let tiempoActual = 0;
+    //inicializo estado usando funcion comun
+    let { posicionActual, tiempoActual } = utils.inicializarEstadoBase(configDisco);
     const peticionesProcesadas = [];
     
-    //divido las peticiones en dos grupos iguales
+    //divido peticiones en dos colas y las clono
     const mitad = Math.ceil(peticiones.length / 2);
-    //grupo1: primeras peticiones (mas viejas)
-    const cola1 = peticiones.slice(0, mitad).map(p => p.clonar());
-    //grupo2: ultimas peticiones (mas nuevas)
-    const cola2 = peticiones.slice(mitad).map(p => p.clonar());
+    const cola1 = utils.clonarPeticiones(peticiones.slice(0, mitad));
+    const cola2 = utils.clonarPeticiones(peticiones.slice(mitad));
     
     //funcion auxiliar para procesar una cola con SCAN
     const procesarCola = (cola) => {
-        //si la cola esta vacia no hay nada q hacer
         if (cola.length === 0) return;
         
-        //ordeno x numero d cilindro para hacer SCAN
+        //ordeno por cilindro usando funcion comun
         cola.sort((a, b) => a.cilindro - b.cilindro);
         
-        //busco donde empezar en esta cola
-        let indiceInicial = 0;
-        //avanzo hasta encontrar la primera peticion mayor
-        while (indiceInicial < cola.length && 
-               cola[indiceInicial].cilindro < posicionActual) {
-            indiceInicial++;
-        }
+        //busco donde empezar usando funcion comun
+        let indiceInicial = utils.encontrarIndiceInicial(cola, posicionActual);
         
-        //primera pasada: subiendo (como SCAN)
-        for (let i = indiceInicial; i < cola.length; i++) {
-            const peticionActual = cola[i];
-            //calculo tiempos normales
-            peticionActual.calcularTiempos(configDisco, posicionActual);
-            //marco cuando empece
-            peticionActual.tiempoProceso = tiempoActual;
-            //actualizo tiempo y posicion
-            tiempoActual += peticionActual.tiempoAccesoTotal;
-            posicionActual = peticionActual.cilindro;
-            peticionesProcesadas.push(peticionActual);
-        }
+        //funcion para procesar en una direccion
+        const procesarEnDireccion = (inicio, fin, paso) => {
+            for (let i = inicio; paso > 0 ? i < fin : i >= fin; i += paso) {
+                const peticionActual = cola[i];
+                
+                //proceso la peticion usando funcion comun
+                const nuevoEstado = utils.procesarPeticion(
+                    peticionActual,
+                    configDisco,
+                    posicionActual,
+                    tiempoActual
+                );
+                
+                //actualizo estado
+                posicionActual = nuevoEstado.nuevaPosicion;
+                tiempoActual = nuevoEstado.nuevoTiempo;
+                
+                //agrego a procesadas
+                peticionesProcesadas.push(peticionActual);
+            }
+        };
         
-        //segunda pasada: bajando
-        for (let i = indiceInicial - 1; i >= 0; i--) {
-            const peticionActual = cola[i];
-            //mismo proceso pero bajando
-            peticionActual.calcularTiempos(configDisco, posicionActual);
-            peticionActual.tiempoProceso = tiempoActual;
-            tiempoActual += peticionActual.tiempoAccesoTotal;
-            posicionActual = peticionActual.cilindro;
-            peticionesProcesadas.push(peticionActual);
-        }
+        //proceso subiendo y bajando
+        procesarEnDireccion(indiceInicial, cola.length, 1);
+        procesarEnDireccion(indiceInicial - 1, 0, -1);
     };
     
-    //proceso primero la cola1 (peticiones viejas)
-    procesarCola(cola1);
-    //despues la cola2 (peticiones nuevas)
-    procesarCola(cola2);
+    //proceso ambas colas en orden
+    procesarCola(cola1); //primero las viejas
+    procesarCola(cola2); //despues las nuevas
     
-    //devuelvo todas las peticiones ya procesadas
     return peticionesProcesadas;
 };
 
-//exporto para q lo use main.js
 export default algoritmoFSCAN;

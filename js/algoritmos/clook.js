@@ -1,3 +1,6 @@
+//importo las funciones comunes
+import * as utils from '../utils.js';
+
 //C-LOOK (LOOK Circular)
 //es la combinacion perfecta:
 //1. usa la idea d LOOK d no ir hasta los extremos
@@ -20,42 +23,46 @@
 //- el retorno consume algo d tiempo
 
 const algoritmoCLOOK = (peticiones, configDisco) => {
-    //validaciones iniciales
-    if(!peticiones || !configDisco) {
-        throw new Error('faltan parametros para C-LOOK!');
-    }
+    //validaciones usando funcion comun
+    utils.validarParametrosBase(peticiones, configDisco, 'C-LOOK');
     
-    let posicionActual = configDisco.posicionActual;
-    let tiempoActual = 0;
-    //copio las peticiones para trabajar
-    const peticionesPendientes = peticiones.map(p => p.clonar());
+    //inicializo estado usando funcion comun
+    let { posicionActual, tiempoActual } = utils.inicializarEstadoBase(configDisco);
+    
+    //copio las peticiones usando funcion comun
+    const peticionesPendientes = utils.clonarPeticiones(peticiones);
     const peticionesProcesadas = [];
     
-    //ordeno las peticiones x numero d cilindro
-    //esto es importante para el recorrido circular
+    //ordeno por cilindro usando funcion comun
     peticionesPendientes.sort((a, b) => a.cilindro - b.cilindro);
     
-    //busco desde donde empezar segun la pos actual
-    let indiceInicial = 0;
-    //avanzo hasta encontrar la primera peticion mayor
-    while (indiceInicial < peticionesPendientes.length && 
-           peticionesPendientes[indiceInicial].cilindro < posicionActual) {
-        indiceInicial++;
-    }
+    //busco donde empezar usando funcion comun
+    let indiceInicial = utils.encontrarIndiceInicial(peticionesPendientes, posicionActual);
+    
+    //funcion auxiliar para procesar peticiones en un rango
+    const procesarPeticionesEnRango = (inicio, fin) => {
+        for (let i = inicio; i < fin; i++) {
+            const peticionActual = peticionesPendientes[i];
+            
+            //proceso la peticion usando funcion comun
+            const nuevoEstado = utils.procesarPeticion(
+                peticionActual,
+                configDisco,
+                posicionActual,
+                tiempoActual
+            );
+            
+            //actualizo estado
+            posicionActual = nuevoEstado.nuevaPosicion;
+            tiempoActual = nuevoEstado.nuevoTiempo;
+            
+            //agrego a procesadas
+            peticionesProcesadas.push(peticionActual);
+        }
+    };
     
     //primera parte: proceso desde donde estoy hacia arriba
-    //pero solo hasta la ultima peticion (como LOOK)
-    for (let i = indiceInicial; i < peticionesPendientes.length; i++) {
-        const peticionActual = peticionesPendientes[i];
-        //calculo todos los tiempos normales
-        peticionActual.calcularTiempos(configDisco, posicionActual);
-        //guardo cuando empece esta peticion
-        peticionActual.tiempoProceso = tiempoActual;
-        //actualizo tiempo y posicion
-        tiempoActual += peticionActual.tiempoAccesoTotal;
-        posicionActual = peticionActual.cilindro;
-        peticionesProcesadas.push(peticionActual);
-    }
+    procesarPeticionesEnRango(indiceInicial, peticionesPendientes.length);
     
     //si quedan peticiones antes del punto inicial
     if (indiceInicial > 0) {
@@ -66,26 +73,16 @@ const algoritmoCLOOK = (peticiones, configDisco) => {
             posicionActual, 
             peticionesPendientes[0].cilindro
         );
-        //sumo el tiempo d viaje
+        
+        //actualizo estado por el retorno
         tiempoActual += tiempoRetorno;
-        //muevo el cabezal a la primera peticion
         posicionActual = peticionesPendientes[0].cilindro;
         
-        //proceso las peticiones q quedaron pendientes
-        for (let i = 0; i < indiceInicial; i++) {
-            const peticionActual = peticionesPendientes[i];
-            //mismo proceso d siempre
-            peticionActual.calcularTiempos(configDisco, posicionActual);
-            peticionActual.tiempoProceso = tiempoActual;
-            tiempoActual += peticionActual.tiempoAccesoTotal;
-            posicionActual = peticionActual.cilindro;
-            peticionesProcesadas.push(peticionActual);
-        }
+        //proceso las peticiones restantes desde el inicio
+        procesarPeticionesEnRango(0, indiceInicial);
     }
     
-    //devuelvo todas las peticiones procesadas
     return peticionesProcesadas;
 };
 
-//exporto para q lo use main.js
 export default algoritmoCLOOK;

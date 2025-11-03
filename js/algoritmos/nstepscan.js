@@ -1,3 +1,6 @@
+//importo las funciones comunes
+import * as utils from '../utils.js';
+
 //N-STEP-SCAN: el mas complejo de todos!
 //como funciona:
 //1. agarra las peticiones y las divide en grupos de N
@@ -11,66 +14,61 @@
 //- el tamaño d los grupos (N) afecta mucho el resultado
 
 const algoritmoNSTEPSCAN = (peticiones, configDisco, N = 4) => {
-    //validaciones
-    if(!peticiones || !configDisco) {
-        throw new Error('faltan parametros para N-STEP-SCAN!');
-    }
+    //validaciones usando funcion comun
+    utils.validarParametrosBase(peticiones, configDisco, 'N-STEP-SCAN');
     
     //valido q N sea un numero positivo
     N = Math.max(1, Math.floor(N));
     
-    let posicionActual = configDisco.posicionActual;
-    let tiempoActual = 0;
+    //inicializo estado usando funcion comun
+    let { posicionActual, tiempoActual } = utils.inicializarEstadoBase(configDisco);
     let peticionesProcesadas = [];
     
-    //hago una copia d las peticiones para no modificar el original
-    const peticionesPendientes = peticiones.map(p => p.clonar());
+    //copio las peticiones usando funcion comun
+    const peticionesPendientes = utils.clonarPeticiones(peticiones);
     
-    //mientras queden peticiones sin procesar
+    //funcion auxiliar para procesar un grupo con SCAN
+    const procesarGrupo = (grupo) => {
+        //ordeno por cilindro usando funcion comun
+        grupo.sort((a, b) => a.cilindro - b.cilindro);
+        
+        //busco donde empezar usando funcion comun
+        let indiceInicial = utils.encontrarIndiceInicial(grupo, posicionActual);
+        
+        //funcion para procesar en una direccion
+        const procesarEnDireccion = (inicio, fin, paso) => {
+            for (let i = inicio; paso > 0 ? i < fin : i >= fin; i += paso) {
+                const peticionActual = grupo[i];
+                
+                //proceso la peticion usando funcion comun
+                const nuevoEstado = utils.procesarPeticion(
+                    peticionActual,
+                    configDisco,
+                    posicionActual,
+                    tiempoActual
+                );
+                
+                //actualizo estado
+                posicionActual = nuevoEstado.nuevaPosicion;
+                tiempoActual = nuevoEstado.nuevoTiempo;
+                
+                //agrego a procesadas
+                peticionesProcesadas.push(peticionActual);
+            }
+        };
+        
+        //proceso en ambas direcciones
+        procesarEnDireccion(indiceInicial, grupo.length, 1);
+        procesarEnDireccion(indiceInicial - 1, 0, -1);
+    };
+    
+    //proceso grupos de N peticiones hasta terminar
     while (peticionesPendientes.length > 0) {
-        //agarro las siguientes N peticiones (o menos si no quedan N)
         const grupoActual = peticionesPendientes.splice(0, N);
-        
-        //las ordeno x numero d cilindro (como SCAN)
-        //asi el cabezal se mueve en una direccion
-        grupoActual.sort((a, b) => a.cilindro - b.cilindro);
-        
-        //busco donde tengo q empezar en este grupo
-        //depende d donde este el cabezal ahora
-        let indiceInicial = 0;
-        while (indiceInicial < grupoActual.length && 
-               grupoActual[indiceInicial].cilindro < posicionActual) {
-            indiceInicial++;
-        }
-        
-        //proceso primero hacia arriba (cilindros mas altos)
-        for (let i = indiceInicial; i < grupoActual.length; i++) {
-            const peticionActual = grupoActual[i];
-            //calculo todos los tiempos (busqueda, rotacion, transferencia)
-            peticionActual.calcularTiempos(configDisco, posicionActual);
-            //guardo cuando empece a procesar esta peticion
-            peticionActual.tiempoProceso = tiempoActual;
-            //actualizo tiempo total y posicion del cabezal
-            tiempoActual += peticionActual.tiempoAccesoTotal;
-            posicionActual = peticionActual.cilindro;
-            peticionesProcesadas.push(peticionActual);
-        }
-        
-        //ahora proceso hacia abajo (cilindros mas bajos)
-        for (let i = indiceInicial - 1; i >= 0; i--) {
-            const peticionActual = grupoActual[i];
-            //mismo proceso q antes pero en la otra direccion
-            peticionActual.calcularTiempos(configDisco, posicionActual);
-            peticionActual.tiempoProceso = tiempoActual;
-            tiempoActual += peticionActual.tiempoAccesoTotal;
-            posicionActual = peticionActual.cilindro;
-            peticionesProcesadas.push(peticionActual);
-        }
+        procesarGrupo(grupoActual);
     }
     
-    //devuelvo todas las peticiones ya procesadas en orden
     return peticionesProcesadas;
 };
 
-//exporto la funcion para q la use main.js
 export default algoritmoNSTEPSCAN;
