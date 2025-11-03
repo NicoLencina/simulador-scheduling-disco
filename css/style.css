@@ -859,7 +859,52 @@ tbody tr:nth-child(even):hover td {
     box-shadow: 0 2px 8px rgba(25, 118, 210, 0.2);
 }
 
+/* Botón expandir/contraer */
+.btn-expandir {
+    padding: 0.5rem 1.2rem;
+    background: linear-gradient(135deg, var(--color-principal) 0%, var(--color-hover) 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transicion);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
+}
+
+.btn-expandir:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(25, 118, 210, 0.4);
+}
+
+.btn-expandir i {
+    transition: transform 0.3s ease;
+}
+
+.btn-expandir.expandido i {
+    transform: rotate(180deg);
+}
+
+/* Vista resumida de cálculos */
 .detalle-calculo {
+    background: #f8f9fa;
+    padding: 1.2rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--color-principal);
+    font-family: 'Courier New', monospace;
+    line-height: 1.8;
+    color: var(--color-texto);
+    max-height: none;
+    overflow: visible;
+    transition: all 0.3s ease;
+}
+
+/* Vista completa expandida */
+.detalle-calculo-completo {
     background: #f8f9fa;
     padding: 1.5rem;
     border-radius: 8px;
@@ -867,7 +912,16 @@ tbody tr:nth-child(even):hover td {
     font-family: 'Courier New', monospace;
     line-height: 2;
     color: var(--color-texto);
-    min-height: 100px;
+    margin-top: 1rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.4s ease;
+}
+
+.detalle-calculo-completo.expandido {
+    max-height: 2000px;
+    opacity: 1;
 }
 
 .detalle-calculo .formula-titulo {

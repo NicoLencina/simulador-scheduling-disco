@@ -191,12 +191,60 @@ window.addEventListener('load', () => {
         });
     }
     
-    //agrego boton para probar casos d prueba
-    const btnTest = document.createElement('button');
-    btnTest.textContent = 'Probar Casos de Prueba';
-    btnTest.classList.add('boton');
-    btnTest.onclick = ejecutarCasosPrueba;
-    document.querySelector('.contenedor').insertBefore(btnTest, document.getElementById('seccion-resultados'));
+    //botón expandir/colapsar cálculos detallados
+    const btnExpandir = document.getElementById('btn-expandir-calculo');
+    if (btnExpandir) {
+        btnExpandir.addEventListener('click', function() {
+            const detalleDiv = document.getElementById('detalle-calculo');
+            const contenidoCompleto = detalleDiv.getAttribute('data-completo');
+            
+            // Buscar si ya existe el div expandido
+            let elementosExpandidos = detalleDiv.querySelectorAll('.contenido-expandido');
+            
+            if (elementosExpandidos.length > 0) {
+                // Ya está expandido - colapsar
+                elementosExpandidos.forEach(el => {
+                    // Si es el resultado-final, solo quitar la clase expandido pero no eliminarlo
+                    if (el.classList.contains('resultado-final')) {
+                        el.classList.remove('contenido-expandido');
+                    } else {
+                        // Eliminar los demás elementos expandidos
+                        el.remove();
+                    }
+                });
+                btnExpandir.innerHTML = '<i class="fas fa-chevron-down"></i> Ver más';
+                btnExpandir.classList.remove('expandido');
+            } else {
+                // Expandir - agregar solo el contenido detallado
+                if (contenidoCompleto && contenidoCompleto.trim() !== '') {
+                    // Buscar y extraer el resultado final del contenido actual
+                    const resultadoFinal = detalleDiv.querySelector('.resultado-final');
+                    let resultadoHTML = '';
+                    if (resultadoFinal) {
+                        resultadoHTML = resultadoFinal.outerHTML;
+                        resultadoFinal.classList.add('contenido-expandido'); // Marcar para restaurar después
+                    }
+                    
+                    // Agregar contenido completo directamente (sin separador)
+                    const divNuevo = document.createElement('div');
+                    divNuevo.className = 'contenido-expandido';
+                    divNuevo.innerHTML = contenidoCompleto;
+                    detalleDiv.appendChild(divNuevo);
+                    
+                    // Mover el resultado final al final (no agregar otro, mover el existente)
+                    if (resultadoFinal) {
+                        detalleDiv.appendChild(resultadoFinal);
+                    }
+                    
+                    btnExpandir.innerHTML = '<i class="fas fa-chevron-up"></i> Ver menos';
+                    btnExpandir.classList.add('expandido');
+                } else {
+                    // No hay contenido adicional para mostrar
+                    console.log('No hay contenido adicional para expandir');
+                }
+            }
+        });
+    }
     
     // Ya se inicializó configDisco arriba
     console.log('Configuración inicial creada:', configDisco);
@@ -554,147 +602,130 @@ function mostrarResultados(peticiones, algoritmo) {
 }
 
 //funcion para probar todos los algoritmos con casos d prueba
-async function ejecutarCasosPrueba() {
-    const resultados = [];
-    
-    for(const caso of casosDePrueba) {
-        console.log(`\nProbando: ${caso.nombre}`);
-        
-        //cargo la config del caso
-        configDisco = new ConfiguracionDisco();
-        configDisco.ponerConfig(caso.config);
-        
-        //creo las peticiones
-        const peticiones = caso.peticiones.map((c, i) => new PeticionDisco(c, i));
-        
-        //pruebo cada algoritmo
-        const algoritmos = ['fifo', 'sstf', 'scan', 'cscan', 'look', 'clook', 'fscan', 'nstepscan'];
-        
-        for(const alg of algoritmos) {
-            try {
-                console.log(`\nEjecutando ${alg.toUpperCase()}:`);
-                const resultado = ejecutarAlgoritmo(alg, peticiones);
-                
-                //calculo metricas
-                let distTotal = 0;
-                let tiempoTotal = 0;
-                let posAnterior = caso.posicionInicial;
-                
-                for(let i = 0; i < resultado.length; i++) {
-                    distTotal += Math.abs(resultado[i].cilindro - posAnterior);
-                    tiempoTotal += resultado[i].tiempoAccesoTotal || 0;
-                    posAnterior = resultado[i].cilindro;
-                }
-                
-                resultados.push({
-                    caso: caso.nombre,
-                    algoritmo: alg,
-                    distancia: distTotal,
-                    tiempo: tiempoTotal
-                });
-                
-                console.log(`Distancia total: ${distTotal}`);
-                console.log(`Tiempo total: ${tiempoTotal.toFixed(2)} ms`);
-                
-            } catch(error) {
-                console.error(`Error en ${alg}: ${error}`);
-            }
-        }
-    }
-    
-    //muestro comparacion
-    console.log('\nComparacion de algoritmos:');
-    console.table(resultados);
-}
-
-// Función para mostrar los cálculos detallados
+// Función para mostrar los cálculos detallados (resumido y completo)
 function mostrarCalculoDetallado(tipoCalculo, peticiones, posicionInicialParam = null) {
     const detalleDiv = document.getElementById('detalle-calculo');
     const posInicial = posicionInicialParam !== null ? posicionInicialParam : configDisco.posicionActual;
-    let html = '';
+    let htmlResumido = '';
+    let htmlCompleto = '';
     
     switch(tipoCalculo) {
         case 'distancia':
-            html = '<span class="formula-titulo"><i class="fas fa-route"></i> Cálculo de Distancia Total</span>';
-            html += '<div class="paso"><span class="paso-numero">Fórmula:</span> Distancia = Σ |Cilindro<sub>actual</sub> - Cilindro<sub>anterior</sub>|</div>';
-            
             let posAnterior = posInicial;
             let suma = '';
             let distTotal = 0;
             
+            // Calcular total
             peticiones.forEach((p, i) => {
                 const dist = Math.abs(p.cilindro - posAnterior);
                 distTotal += dist;
-                html += `<div class="paso">`;
-                html += `<span class="paso-numero">Paso ${i + 1}:</span> `;
-                html += `De cilindro <span class="valor">${posAnterior}</span> `;
-                html += `→ <span class="valor">${p.cilindro}</span> `;
-                html += `= |${p.cilindro} - ${posAnterior}| = <span class="valor">${dist}</span> cilindros`;
-                html += `</div>`;
                 suma += (i > 0 ? ' + ' : '') + dist;
                 posAnterior = p.cilindro;
             });
             
-            html += `<div class="paso"><span class="paso-numero">Total:</span> ${suma} = <span class="valor">${distTotal}</span> cilindros</div>`;
-            html += `<div class="resultado-final"><i class="fas fa-check-circle"></i> Distancia Total Recorrida: ${distTotal} cilindros</div>`;
+            // VERSIÓN RESUMIDA
+            htmlResumido = '<span class="formula-titulo"><i class="fas fa-route"></i> Cálculo de Distancia Total</span>';
+            htmlResumido += '<div class="paso"><span class="paso-numero">Fórmula:</span> Distancia = Σ |Cilindro<sub>actual</sub> - Cilindro<sub>anterior</sub>|</div>';
+            
+            // Primeros 3 pasos
+            posAnterior = posInicial;
+            for(let i = 0; i < Math.min(3, peticiones.length); i++) {
+                const p = peticiones[i];
+                const dist = Math.abs(p.cilindro - posAnterior);
+                htmlResumido += `<div class="paso">`;
+                htmlResumido += `<span class="paso-numero">Paso ${i + 1}:</span> `;
+                htmlResumido += `|${p.cilindro} - ${posAnterior}| = <span class="valor">${dist}</span> cilindros`;
+                htmlResumido += `</div>`;
+                posAnterior = p.cilindro;
+            }
+            
+            // Siempre mostrar resultado final en la vista resumida
+            htmlResumido += `<div class="resultado-final"><i class="fas fa-check-circle"></i> Resultado: ${distTotal} cilindros</div>`;
+            
+            // VERSIÓN COMPLETA - Pasos restantes (continuando la numeración)
+            if(peticiones.length > 3) {
+                posAnterior = peticiones[2].cilindro;
+                
+                for(let i = 3; i < peticiones.length; i++) {
+                    const p = peticiones[i];
+                    const dist = Math.abs(p.cilindro - posAnterior);
+                    htmlCompleto += `<div class="paso">`;
+                    htmlCompleto += `<span class="paso-numero">Paso ${i + 1}:</span> `;
+                    htmlCompleto += `|${p.cilindro} - ${posAnterior}| = <span class="valor">${dist}</span> cilindros`;
+                    htmlCompleto += `</div>`;
+                    posAnterior = p.cilindro;
+                }
+            }
             break;
             
         case 'busqueda':
-            html = '<span class="formula-titulo"><i class="fas fa-search"></i> Cálculo de Tiempo de Búsqueda</span>';
-            html += '<div class="paso"><span class="paso-numero">Fórmula:</span> Tiempo Búsqueda = Distancia × STM</div>';
-            html += `<div class="paso"><span class="paso-numero">STM:</span> <span class="valor">${configDisco.multiplicadorTiempoBusqueda}</span> ms/cilindro</div>`;
-            
             let totalBusqueda = 0;
             let posAnt = posInicial;
             
-            peticiones.forEach((p, i) => {
+            // Calcular total
+            peticiones.forEach((p) => {
                 const dist = Math.abs(p.cilindro - posAnt);
-                const tiempo = dist * configDisco.multiplicadorTiempoBusqueda;
-                totalBusqueda += tiempo;
-                
-                html += `<div class="paso">`;
-                html += `<span class="paso-numero">Petición ${i + 1}:</span> `;
-                html += `${dist} cilindros × ${configDisco.multiplicadorTiempoBusqueda} ms = <span class="valor">${tiempo.toFixed(2)}</span> ms`;
-                html += `</div>`;
+                totalBusqueda += dist * configDisco.multiplicadorTiempoBusqueda;
                 posAnt = p.cilindro;
             });
             
-            html += `<div class="resultado-final"><i class="fas fa-clock"></i> Tiempo Total de Búsqueda: ${totalBusqueda.toFixed(2)} ms</div>`;
+            // VERSIÓN RESUMIDA
+            htmlResumido = '<span class="formula-titulo"><i class="fas fa-search"></i> Tiempo de Búsqueda</span>';
+            htmlResumido += '<div class="paso"><span class="paso-numero">Fórmula:</span> Tiempo = Distancia × STM</div>';
+            htmlResumido += `<div class="paso"><span class="paso-numero">STM:</span> <span class="valor">${configDisco.multiplicadorTiempoBusqueda}</span> ms/cilindro</div>`;
+            htmlResumido += `<div class="paso"><span class="paso-numero">Peticiones:</span> <span class="valor">${peticiones.length}</span></div>`;
+            htmlResumido += `<div class="resultado-final"><i class="fas fa-clock"></i> Resultado: ${totalBusqueda.toFixed(2)} ms</div>`;
+            
+            // VERSIÓN COMPLETA - Desglose detallado por cada petición
+            posAnt = posInicial;
+            peticiones.forEach((p, i) => {
+                const dist = Math.abs(p.cilindro - posAnt);
+                const tiempo = dist * configDisco.multiplicadorTiempoBusqueda;
+                
+                htmlCompleto += `<div class="paso">`;
+                htmlCompleto += `<span class="paso-numero">Petición ${i + 1}:</span> `;
+                htmlCompleto += `${dist} cilindros × ${configDisco.multiplicadorTiempoBusqueda} ms = <span class="valor">${tiempo.toFixed(2)}</span> ms`;
+                htmlCompleto += `</div>`;
+                posAnt = p.cilindro;
+            });
             break;
             
         case 'rotacion':
-            html = '<span class="formula-titulo"><i class="fas fa-sync"></i> Cálculo de Tiempo de Rotación</span>';
-            html += '<div class="paso"><span class="paso-numero">Fórmula:</span> Latencia Rotacional = (60,000 ms / RPM) / 2</div>';
-            html += `<div class="paso"><span class="paso-numero">Velocidad:</span> <span class="valor">${configDisco.velocidadRotacional}</span> RPM</div>`;
-            
             const msPerRev = (60 * 1000) / configDisco.velocidadRotacional;
             const latencia = msPerRev / 2;
-            
-            html += `<div class="paso"><span class="paso-numero">Cálculo:</span> (60,000 / ${configDisco.velocidadRotacional}) / 2 = <span class="valor">${latencia.toFixed(2)}</span> ms por petición</div>`;
-            html += `<div class="paso"><span class="paso-numero">Cantidad de peticiones:</span> <span class="valor">${peticiones.length}</span></div>`;
-            
             const totalRotacion = latencia * peticiones.length;
             
-            html += `<div class="paso"><span class="paso-numero">Total:</span> ${latencia.toFixed(2)} ms × ${peticiones.length} = <span class="valor">${totalRotacion.toFixed(2)}</span> ms</div>`;
-            html += `<div class="resultado-final"><i class="fas fa-sync"></i> Tiempo Total de Rotación: ${totalRotacion.toFixed(2)} ms</div>`;
+            // VERSIÓN RESUMIDA
+            htmlResumido = '<span class="formula-titulo"><i class="fas fa-sync"></i> Tiempo de Rotación</span>';
+            htmlResumido += '<div class="paso"><span class="paso-numero">Fórmula:</span> (60,000 ms / RPM) / 2</div>';
+            htmlResumido += `<div class="paso"><span class="paso-numero">Latencia:</span> <span class="valor">${latencia.toFixed(2)}</span> ms por petición</div>`;
+            htmlResumido += `<div class="paso"><span class="paso-numero">Peticiones:</span> <span class="valor">${peticiones.length}</span></div>`;
+            htmlResumido += `<div class="resultado-final"><i class="fas fa-sync"></i> Resultado: ${totalRotacion.toFixed(2)} ms</div>`;
+            
+            // VERSIÓN COMPLETA - Desglose paso a paso del cálculo
+            htmlCompleto += `<div class="paso"><span class="paso-numero">Velocidad Rotacional:</span> <span class="valor">${configDisco.velocidadRotacional}</span> RPM</div>`;
+            htmlCompleto += `<div class="paso"><span class="paso-numero">Milisegundos por revolución:</span> 60,000 ÷ ${configDisco.velocidadRotacional} = <span class="valor">${msPerRev.toFixed(2)}</span> ms</div>`;
+            htmlCompleto += `<div class="paso"><span class="paso-numero">Latencia promedio (½ revolución):</span> ${msPerRev.toFixed(2)} ÷ 2 = <span class="valor">${latencia.toFixed(2)}</span> ms</div>`;
+            htmlCompleto += `<div class="paso"><span class="paso-numero">Cálculo:</span> ${latencia.toFixed(2)} ms × ${peticiones.length} peticiones</div>`;
             break;
             
         case 'transferencia':
-            html = '<span class="formula-titulo"><i class="fas fa-exchange-alt"></i> Cálculo de Tiempo de Transferencia</span>';
-            html += '<div class="paso"><span class="paso-numero">Fórmula:</span> Tiempo Transferencia = TT1S × Cantidad de Peticiones</div>';
-            html += `<div class="paso"><span class="paso-numero">TT1S:</span> <span class="valor">${configDisco.tiempoTransferenciaSector}</span> ms/sector</div>`;
-            html += `<div class="paso"><span class="paso-numero">Cantidad de peticiones:</span> <span class="valor">${peticiones.length}</span></div>`;
-            
             const totalTransf = configDisco.tiempoTransferenciaSector * peticiones.length;
             
-            html += `<div class="paso"><span class="paso-numero">Total:</span> ${configDisco.tiempoTransferenciaSector} ms × ${peticiones.length} = <span class="valor">${totalTransf.toFixed(2)}</span> ms</div>`;
-            html += `<div class="resultado-final"><i class="fas fa-exchange-alt"></i> Tiempo Total de Transferencia: ${totalTransf.toFixed(2)} ms</div>`;
+            // VERSIÓN RESUMIDA
+            htmlResumido = '<span class="formula-titulo"><i class="fas fa-exchange-alt"></i> Tiempo de Transferencia</span>';
+            htmlResumido += '<div class="paso"><span class="paso-numero">Fórmula:</span> TT1S × Peticiones</div>';
+            htmlResumido += `<div class="paso"><span class="paso-numero">TT1S:</span> <span class="valor">${configDisco.tiempoTransferenciaSector}</span> ms/sector</div>`;
+            htmlResumido += `<div class="paso"><span class="paso-numero">Peticiones:</span> <span class="valor">${peticiones.length}</span></div>`;
+            htmlResumido += `<div class="resultado-final"><i class="fas fa-exchange-alt"></i> Resultado: ${totalTransf.toFixed(2)} ms</div>`;
+            
+            // VERSIÓN COMPLETA - Información adicional
+            htmlCompleto += `<div class="paso"><span class="paso-numero">Explicación TT1S:</span> Tiempo de Transferencia por Sector</div>`;
+            htmlCompleto += `<div class="paso"><span class="paso-numero">Asunción:</span> 1 sector por petición (estándar)</div>`;
+            htmlCompleto += `<div class="paso"><span class="paso-numero">Cálculo detallado:</span> ${configDisco.tiempoTransferenciaSector} ms × ${peticiones.length} peticiones</div>`;
             break;
             
         case 'total':
-            html = '<span class="formula-titulo"><i class="fas fa-calculator"></i> Cálculo de Tiempo Total de Acceso</span>';
-            html += '<div class="paso"><span class="paso-numero">Fórmula:</span> Tiempo Total = Tiempo Búsqueda + Tiempo Rotación + Tiempo Transferencia</div>';
-            
             let tBusqueda = 0, tRotacion = 0, tTransf = 0;
             let posA = posInicial;
             
@@ -706,18 +737,53 @@ function mostrarCalculoDetallado(tipoCalculo, peticiones, posicionInicialParam =
                 posA = p.cilindro;
             });
             
-            html += `<div class="paso"><span class="paso-numero">Tiempo de Búsqueda:</span> <span class="valor">${tBusqueda.toFixed(2)}</span> ms</div>`;
-            html += `<div class="paso"><span class="paso-numero">Tiempo de Rotación:</span> <span class="valor">${tRotacion.toFixed(2)}</span> ms</div>`;
-            html += `<div class="paso"><span class="paso-numero">Tiempo de Transferencia:</span> <span class="valor">${tTransf.toFixed(2)}</span> ms</div>`;
-            
             const total = tBusqueda + tRotacion + tTransf;
             
-            html += `<div class="paso"><span class="paso-numero">Suma:</span> ${tBusqueda.toFixed(2)} + ${tRotacion.toFixed(2)} + ${tTransf.toFixed(2)} = <span class="valor">${total.toFixed(2)}</span> ms</div>`;
-            html += `<div class="resultado-final"><i class="fas fa-hourglass-end"></i> Tiempo Total de Acceso: ${total.toFixed(2)} ms</div>`;
+            // VERSIÓN RESUMIDA
+            htmlResumido = '<span class="formula-titulo"><i class="fas fa-calculator"></i> Tiempo Total de Acceso</span>';
+            htmlResumido += '<div class="paso"><span class="paso-numero">Fórmula:</span> Búsqueda + Rotación + Transferencia</div>';
+            htmlResumido += `<div class="paso"><span class="paso-numero">Búsqueda:</span> <span class="valor">${tBusqueda.toFixed(2)}</span> ms</div>`;
+            htmlResumido += `<div class="paso"><span class="paso-numero">Rotación:</span> <span class="valor">${tRotacion.toFixed(2)}</span> ms</div>`;
+            htmlResumido += `<div class="paso"><span class="paso-numero">Transferencia:</span> <span class="valor">${tTransf.toFixed(2)}</span> ms</div>`;
+            htmlResumido += `<div class="resultado-final"><i class="fas fa-hourglass-end"></i> Resultado: ${total.toFixed(2)} ms</div>`;
+            
+            // VERSIÓN COMPLETA - Análisis detallado con porcentajes
+            htmlCompleto += `<div class="paso"><span class="paso-numero">Análisis Porcentual:</span></div>`;
+            htmlCompleto += `<div class="paso">• Búsqueda: ${(tBusqueda/total*100).toFixed(1)}% del total</div>`;
+            htmlCompleto += `<div class="paso">• Rotación: ${(tRotacion/total*100).toFixed(1)}% del total</div>`;
+            htmlCompleto += `<div class="paso">• Transferencia: ${(tTransf/total*100).toFixed(1)}% del total</div>`;
+            
+            // Determinar cuál componente es el dominante
+            const max = Math.max(tBusqueda, tRotacion, tTransf);
+            let dominante = '';
+            if (max === tBusqueda) dominante = 'Búsqueda (movimiento del cabezal)';
+            else if (max === tRotacion) dominante = 'Rotación (latencia rotacional)';
+            else dominante = 'Transferencia (lectura de datos)';
+            
+            htmlCompleto += `<div class="paso"><span class="paso-numero">Componente dominante:</span> ${dominante}</div>`;
+            htmlCompleto += `<div class="paso"><span class="paso-numero">Verificación de suma:</span> ${tBusqueda.toFixed(2)} + ${tRotacion.toFixed(2)} + ${tTransf.toFixed(2)}</div>`;
             break;
     }
     
-    detalleDiv.innerHTML = html;
+    // Guardar ambas versiones en el div principal
+    detalleDiv.innerHTML = htmlResumido;
+    detalleDiv.setAttribute('data-resumido', htmlResumido);
+    detalleDiv.setAttribute('data-completo', htmlCompleto);
+    
+    console.log('Mostrando cálculo:', tipoCalculo);
+    console.log('HTML Resumido length:', htmlResumido.length);
+    console.log('HTML Completo length:', htmlCompleto.length);
+    
+    // Resetear el botón expandir y limpiar contenido expandido previo
+    const btnExpandir = document.getElementById('btn-expandir-calculo');
+    if (btnExpandir) {
+        btnExpandir.innerHTML = '<i class="fas fa-chevron-down"></i> Ver más';
+        btnExpandir.classList.remove('expandido');
+    }
+    
+    // Eliminar cualquier contenido expandido que pueda existir
+    const elementosExpandidos = detalleDiv.querySelectorAll('.contenido-expandido');
+    elementosExpandidos.forEach(el => el.remove());
 }
 
 //dibuja el grafico d movimiento del cabezal - versión mejorada
