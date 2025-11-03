@@ -823,10 +823,24 @@ function mostrarCalculoDetallado(tipoCalculo, peticiones, posicionInicialParam =
     
     // Contar elementos ocultos según el tipo de cálculo
     let elementosOcultos = 0;
-    if (tipoCalculo === 'distancia') {
-        elementosOcultos = Math.max(0, peticiones.length - 3);
-    } else if (tipoCalculo === 'busqueda') {
-        elementosOcultos = peticiones.length; // todas las peticiones están ocultas en resumido
+    switch(tipoCalculo) {
+        case 'distancia':
+            // Si hay más de 3 peticiones, contamos todos los pasos ocultos sin restar los mostrados
+            // Ya que en la versión completa se muestran todos los pasos desde el inicio
+            elementosOcultos = peticiones.length > 3 ? peticiones.length - 3 : 0;
+            break;
+        case 'busqueda':
+            elementosOcultos = peticiones.length; // todas las peticiones están ocultas en resumido
+            break;
+        case 'rotacion':
+            elementosOcultos = 3; // 3 pasos adicionales en la versión completa
+            break;
+        case 'transferencia':
+            elementosOcultos = 2; // 2 pasos adicionales en la versión completa
+            break;
+        case 'total':
+            elementosOcultos = 4; // 4 pasos adicionales (análisis porcentual y verificación)
+            break;
     }
     detalleDiv.setAttribute('data-pasos-ocultos', elementosOcultos);
     
