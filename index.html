@@ -206,6 +206,24 @@
                     </div>
                 </div>
 
+                <!-- Sección de Cálculos Detallados -->
+                <div class="seccion-calculos">
+                    <h3><i class="fas fa-calculator"></i> Cálculos Detallados</h3>
+                    <div class="selector-calculo">
+                        <label>Ver cálculo de:</label>
+                        <select id="tipo-calculo">
+                            <option value="distancia">Distancia Total</option>
+                            <option value="busqueda">Tiempo de Búsqueda</option>
+                            <option value="rotacion">Tiempo de Rotación</option>
+                            <option value="transferencia">Tiempo de Transferencia</option>
+                            <option value="total">Tiempo Total de Acceso</option>
+                        </select>
+                    </div>
+                    <div id="detalle-calculo" class="detalle-calculo">
+                        <!-- Aquí se mostrarán los cálculos -->
+                    </div>
+                </div>
+
                 <div class="contenedor-grafico">
                     <h3><i class="fas fa-chart-line"></i> Visualización del Movimiento del Cabezal</h3>
                     <canvas id="grafico-movimiento"></canvas>
