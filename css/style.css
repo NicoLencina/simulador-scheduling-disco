@@ -1460,33 +1460,41 @@ tbody tr:nth-child(even):hover td {
     width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     flex-shrink: 0;
+    overflow: visible;
+    border-radius: 8px;
 }
 
 .img-disco-principal {
     width: 100%;
-    max-width: 280px; /* Reducido para mejor ajuste */
+    max-width: 100%;
     height: auto;
     border-radius: 8px;
     background: white;
-    padding: 12px;
+    padding: 0;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    transition: var(--transicion);
+    transition: all 0.4s ease;
     display: block;
+    object-fit: cover;
+    cursor: pointer;
+    transform-origin: center center;
 }
 
 .img-disco-principal:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    transform: scale(1.08);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    z-index: 10;
 }
 
 .caption-disco {
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
     font-style: italic;
-    color: rgba(255,255,255,0.9);
+    color: rgba(255,255,255,0.95);
     margin-bottom: 0;
+    font-weight: 500;
+    text-align: center;
 }
 
 .valores-recomendados h3 {
