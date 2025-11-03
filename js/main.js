@@ -1069,9 +1069,11 @@ function dibujarGraficoTiempos(tiempoBusqueda, tiempoRotacion, tiempoTransferenc
     canvas.width = canvas.offsetWidth;
     canvas.height = 300;
     
-    const margen = 60;
-    const anchoGrafico = canvas.width - (margen * 2);
-    const altoGrafico = canvas.height - (margen * 2);
+    const margenTop = 40;
+    const margenBottom = 75; // Más espacio para las etiquetas
+    const margenLateral = 40; // Reducido para dar más espacio a las barras
+    const anchoGrafico = canvas.width - (margenLateral * 2);
+    const altoGrafico = canvas.height - margenTop - margenBottom;
     
     // Limpiar
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1088,17 +1090,23 @@ function dibujarGraficoTiempos(tiempoBusqueda, tiempoRotacion, tiempoTransferenc
     ];
     
     const maxValor = Math.max(...datos.map(d => d.valor));
-    const escalaY = altoGrafico / maxValor;
-    const anchoBarra = anchoGrafico / (datos.length * 2);
+    const escalaY = (altoGrafico - 30) / maxValor;
+    
+    // Calcular espaciado - barras anchas y bien separadas
+    const numBarras = datos.length;
+    const anchoBarra = 55; // Ancho fijo de 55px por barra
+    const espacioEntre = 27; // 27px de separación entre barras
+    const anchoTotalNecesario = (anchoBarra * numBarras) + (espacioEntre * (numBarras + 1));
+    const offset = (anchoGrafico - anchoTotalNecesario) / 2; // Centrar las barras
     
     // Dibujar barras
     datos.forEach((dato, i) => {
-        const x = margen + (i * anchoBarra * 2) + anchoBarra / 2;
+        const x = margenLateral + offset + espacioEntre + (i * (anchoBarra + espacioEntre));
         const alturaBarra = dato.valor * escalaY;
-        const y = canvas.height - margen - alturaBarra;
+        const y = canvas.height - margenBottom - alturaBarra;
         
         // Gradiente para la barra
-        const gradiente = ctx.createLinearGradient(x, y, x, canvas.height - margen);
+        const gradiente = ctx.createLinearGradient(x, y, x, canvas.height - margenBottom);
         gradiente.addColorStop(0, dato.color);
         gradiente.addColorStop(1, dato.color + 'AA');
         
@@ -1111,16 +1119,28 @@ function dibujarGraficoTiempos(tiempoBusqueda, tiempoRotacion, tiempoTransferenc
         ctx.lineWidth = 2;
         ctx.strokeRect(x, y, anchoBarra, alturaBarra);
         
-        // Valor encima de la barra
-        ctx.fillStyle = '#212529';
-        ctx.font = 'bold 14px Arial';
+        // Valor encima de la barra con fondo
+        const valorTexto = dato.valor.toFixed(2) + ' ms';
+        ctx.font = 'bold 13px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(dato.valor.toFixed(2) + ' ms', x + anchoBarra / 2, y - 10);
+        const anchoTexto = ctx.measureText(valorTexto).width;
         
-        // Etiqueta debajo
-        ctx.fillStyle = '#495057';
-        ctx.font = '12px Arial';
-        ctx.fillText(dato.label, x + anchoBarra / 2, canvas.height - margen + 25);
+        // Fondo blanco para el texto
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.fillRect(x + anchoBarra / 2 - anchoTexto / 2 - 4, y - 24, anchoTexto + 8, 18);
+        ctx.strokeStyle = dato.color;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + anchoBarra / 2 - anchoTexto / 2 - 4, y - 24, anchoTexto + 8, 18);
+        
+        // Texto del valor
+        ctx.fillStyle = '#212529';
+        ctx.fillText(valorTexto, x + anchoBarra / 2, y - 10);
+        
+        // Etiqueta debajo - centrada, más grande y con más espacio
+        ctx.fillStyle = '#212529';
+        ctx.font = 'bold 13px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(dato.label, x + anchoBarra / 2, canvas.height - margenBottom + 35);
     });
     
     // Título del eje Y
