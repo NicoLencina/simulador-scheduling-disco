@@ -861,7 +861,7 @@ tbody tr:nth-child(even):hover td {
 
 /* Botón expandir/contraer */
 .btn-expandir {
-    padding: 0.5rem 1.2rem;
+    padding: 0.6rem 1.5rem;
     background: linear-gradient(135deg, var(--color-principal) 0%, var(--color-hover) 100%);
     color: white;
     border: none;
@@ -870,9 +870,8 @@ tbody tr:nth-child(even):hover td {
     font-weight: 600;
     cursor: pointer;
     transition: var(--transicion);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    display: block;
+    margin: 1rem auto 0;
     box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
 }
 
@@ -883,10 +882,6 @@ tbody tr:nth-child(even):hover td {
 
 .btn-expandir i {
     transition: transform 0.3s ease;
-}
-
-.btn-expandir.expandido i {
-    transform: rotate(180deg);
 }
 
 /* Vista resumida de cálculos */
