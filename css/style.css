@@ -336,13 +336,13 @@ input:checked + .switch-slider:before {
     display: grid;
     grid-template-columns: minmax(auto, 2fr) 300px;
     gap: 1rem;
-    align-items: start;
+    align-items: stretch;
     width: 100%;
     margin: 0 auto;
     max-width: 1400px;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 900px) {
     .layout-formulario {
         grid-template-columns: 1fr;
         gap: 1.5rem;
@@ -354,14 +354,16 @@ input:checked + .switch-slider:before {
 .grilla-formulario {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.7rem;
+    gap: 1rem;
     font-size: 0.85rem;
     min-width: 0;
     width: 100%;
-    align-self: start;
+    align-self: stretch;
     margin: 0;
     padding: 0;
     grid-auto-rows: min-content;
+    height: 100%;
+    align-content: space-between;
 }
 
 @media (max-width: 768px) {
@@ -378,7 +380,8 @@ input:checked + .switch-slider:before {
     position: relative;
     min-height: auto;
     margin: 0;
-    padding: 0.5rem;
+    padding: 0.6rem;
+    margin-top: auto;
 }
 
 .peticiones-header {
@@ -405,7 +408,7 @@ input:checked + .switch-slider:before {
 .grupo-formulario {
     position: relative;
     margin: 0;
-    padding: 0.5rem;
+    padding: 0.6rem;
     background: #fff;
     border-radius: 6px;
     box-shadow: var(--sombra-suave);
@@ -1300,7 +1303,7 @@ tbody tr:nth-child(even):hover td {
 /* contenedor del boton simular */
 .boton-simular-container {
     text-align: center;
-    margin: 1rem auto 0 auto;
+    margin: 1.2rem auto 0 auto;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -1309,7 +1312,7 @@ tbody tr:nth-child(even):hover td {
     padding: 0;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 900px) {
     .boton-simular-container {
         margin: 0.75rem auto 0 auto;
     }
@@ -1397,16 +1400,19 @@ tbody tr:nth-child(even):hover td {
     padding: 1.25rem;
     border-radius: 12px;
     box-shadow: var(--sombra-media);
-    height: fit-content;
-    position: sticky;
-    top: 2rem;
-    align-self: start;
+    height: auto;
+    min-height: 100%;
+    position: relative;
+    top: 0;
+    align-self: stretch;
     width: 100%;
     max-width: 300px;
     justify-self: end;
+    display: flex;
+    flex-direction: column;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 900px) {
     .valores-recomendados {
         position: static;
         margin-top: 1rem;
@@ -1423,6 +1429,7 @@ tbody tr:nth-child(even):hover td {
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .img-disco-principal {
@@ -1456,12 +1463,17 @@ tbody tr:nth-child(even):hover td {
     margin-bottom: 0.75rem;
     border-bottom: 2px solid rgba(255,255,255,0.3);
     padding-bottom: 0.4rem;
+    flex-shrink: 0;
 }
 
 .valores-recomendados ul {
     list-style: none;
     padding: 0;
     margin: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 
 .valores-recomendados li {
@@ -1501,7 +1513,7 @@ tbody tr:nth-child(even):hover td {
 }
 
 /* ajustes para pantallas medianas */
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
     .layout-formulario {
         grid-template-columns: 1fr;  /* una columna en tablets */
     }
