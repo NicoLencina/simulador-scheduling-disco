@@ -1,43 +1,18 @@
 //necesito los rangos de config para validar
 import ConfiguracionDisco from './config.js';
 
-/* al principio quise traer los valores de una api pero era demasiado
-async function obtenerValoresRecomendados() {
-    const response = await fetch('api/defaults.json');
-    return response.json();
-}
-*/
 
-/* esto lo empece con una clase pero me quedo muy complejo al pedo
-class Autocompletador {
-    constructor() {
-        this.valores = {};  //aca iban todos los valores default
-        this.ultimosUsados = [];  //guarde esto pero dsps no lo use
-    }
-    cargarValores() {
-        //esto tampoco termine usando
-        return fetch('/api/valores.json');
-    }
-}
-*/
-
-// valores q encontre buscando en internet sobre discos actuales
+// Valores predeterminados basados en especificaciones típicas de discos modernos
 const valoresRecomendados = {
-    stm: 0.5,          // ms/cilindro - valor típico para discos modernos
-    vr: 7200,         // RPM - velocidad común en discos actuales
-    tt1s: 0.2,        // ms - tiempo promedio de transferencia
-    tb: 500,          // bloques por pista - valor realista
-    tp: 4,            // total de platos - común en discos de consumo
-    pc: 2,            // platos por cilindro - valor razonable
-    sc: 128,          // sectores por cilindro - potencia de 2 común
-    'initial-position': 0  // posición inicial del cabezal
+    stm: 0.5,          // Tiempo de movimiento entre cilindros (ms/cilindro)
+    vr: 7200,         // Velocidad de rotación (RPM) 
+    tt1s: 0.2,        // Tiempo de transferencia por sector (ms)
+    tb: 500,          // Bloques por pista
+    tp: 4,            // Total de platos
+    pc: 2,            // Platos por cilindro
+    sc: 128,          // Sectores por cilindro
+    'initial-position': 0  // Posición inicial del cabezal
 };
-
-/* probe guardar en localStorage x si querian conservar valores
-pero dsps pense q mejor q empiecen limpios siempre
-const guardados = JSON.parse(localStorage.getItem('defaults')) || {};
-Object.assign(valoresRecomendados, guardados);
-*/
 
 // me fijo q los valores no se vayan de rango
 Object.entries(valoresRecomendados).forEach(([campo, valor]) => {
@@ -54,17 +29,12 @@ Object.entries(valoresRecomendados).forEach(([campo, valor]) => {
  */
 const CAMPOS = ['stm', 'vr', 'tt1s', 'tb', 'tp', 'pc', 'sc', 'initial-position'];
 
-/* antes lo hacia con jquery pero era mucho peso para tan poco
-function actualizarCampo($elem, valor) {
-    $elem.val(valor).animate({
-        backgroundColor: "#e3f2fd"
-    }, 300);
-}
-*/
+
 
 /**
- * le pongo una animacion copada cuando cambia el valor
- * dsps la saco para q no quede marcado
+ * Actualiza el valor de un campo con una animación visual
+ * @param {HTMLElement} elemento - El elemento input a actualizar
+ * @param {number} valor - El nuevo valor a asignar
  */
 function actualizarCampo(elemento, valor) {
     if (!elemento) return;
@@ -78,16 +48,10 @@ function actualizarCampo(elemento, valor) {
     }, 500);
 }
 
-/* esto era mas complejo pero lo simplifique
-function autocompletarCampos() {
-    const promesas = CAMPOS.map(async campo => {
-        const valor = await calcularValorOptimo(campo);
-        return actualizarCampo(campo, valor);
-    });
-    return Promise.all(promesas);
-}
-*/
 
+/**
+ * Aplica los valores recomendados a todos los campos del formulario
+ */
 function autocompletarCampos() {
     try {
         // Recorro cada campo y lo actualizo si existe
@@ -103,14 +67,12 @@ function autocompletarCampos() {
     }
 }
 
-/* primero los tooltips eran mas complejos pero quedaban feos
-const tooltipConfig = {
-    delay: 200,
-    html: true,
-    template: '<div class="tooltip">...</div>'
-}
-*/
 
+
+/**
+ * Configura los tooltips de ayuda para los campos de entrada
+ * @param {NodeList} inputs - Lista de elementos input
+ */
 function configurarTooltips(inputs) {
     inputs.forEach(input => {
         const helpText = input.nextElementSibling;
@@ -121,7 +83,9 @@ function configurarTooltips(inputs) {
     });
 }
 
-// esto inicializa todo - lo puse en una funcion x si hay q recargar
+/**
+ * Inicializa los eventos y comportamientos del autocompletado
+ */
 function inicializarAutocompletado() {
     try {
         // Configuro el botón d autocompletar
