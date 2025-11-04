@@ -1,6 +1,6 @@
-/* defino los colores q voy a usar en toda la app
-   asi los tengo a mano y los cambio facil si necesito 
-   actualizados para un look mas moderno y profesional */
+/* colores base de la app
+   faciles de modificar para mantener consistencia
+   elegidos para un diseño moderno y profesional */
 :root {
     --color-principal: #1976D2;    /* azul mas profesional para destacar lo importante */
     --color-secundario: #455A64;   /* gris azulado mas oscuro para elementos secundarios */
@@ -20,11 +20,11 @@
     --transicion: all 0.3s ease;
 }
 
-/* reset basico para q todo arranque igual */
+/* reset basico para que todos los elementos empiecen igual */
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;  /* esto hace q el padding no agrande los elementos */
+    box-sizing: border-box;  /* el padding no aumenta el tamaño total */
 }
 
 body {
@@ -34,7 +34,7 @@ body {
     background-color: var(--color-fondo);  /* colores base del sitio */
 }
 
-/* contenedor principal q mantiene todo centrado */
+/* contenedor principal para mantener todo centrado y organizado */
 .contenedor {
     max-width: 1400px;
     margin: 0 auto;
@@ -1564,7 +1564,7 @@ tbody tr:nth-child(even):hover td {
     }
 }
 
-/* ajustes para pantallas medianas */
+/* estilos responsive para tablets y pantallas medianas */
 @media (max-width: 900px) {
     .layout-formulario {
         grid-template-columns: 1fr;  /* una columna en tablets */
@@ -1580,7 +1580,7 @@ tbody tr:nth-child(even):hover td {
     }
 }
 
-/* ajustes para pantallas chicas (celulares) */
+/* estilos responsive para celulares y pantallas pequeñas */
 @media (max-width: 768px) {
     .contenedor {
         padding: 10px;    /* menos padding en mobile */
