@@ -9,7 +9,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- todo va en un container para q quede centrado -->
+    <!--flex,no me gusto como quedaba
+    <div class="contenedor-flex">
+        <div class="panel-izq">...</div>
+        <div class="panel-der">...</div>
+    </div>
+    -->
+    
     <div class="contenedor">
         <header>
             <h1><i class="fas fa-hdd"></i> Simulador de Algoritmos de Scheduling de Disco</h1>
@@ -22,7 +28,13 @@
         </header>
 
         <main>
-            <!-- Configuración del disco -->
+            <!--config/resultados pero mejor sections
+            <div class="tabs">
+                <div class="tab" data-tab="config">Configuracion</div>
+                <div class="tab" data-tab="results">Resultados</div>
+            </div>
+            -->
+            
             <section id="configuracion-disco" class="seccion-config">
                 <div class="header-config">
                     <div class="header-izquierda">
@@ -58,28 +70,42 @@
                     </div>
                 </div>
                 <div class="layout-formulario">
+                    <!-- 
+                    <table class="tabla-inputs">
+                        <tr>
+                            <td><label>...</label></td>
+                            <td><input...></td>
+                        </tr>
+                    </table>
+                    -->
+                    
                     <div class="grilla-formulario">
-                        <div class="grupo-formulario" data-tooltip="Tiempo que tarda el cabezal en moverse de un cilindro a otro. Valores típicos: 0.1 a 1.0 ms por cilindro.">
+                        <!-- estos valores los saque de internet, con datos mas comunes en disco -->
+                        <div class="grupo-formulario" data-tooltip="tiempo que necesita el cabezal para moverse entre cilindros, normalmente entre 0.1 y 1.0 ms">
                             <label for="stm">STM (Tiempo de Búsqueda):</label>
                             <input type="number" id="stm" required min="0" step="0.1" placeholder="0.1 - 1.0">
                             <span class="help-text">ms/cilindro</span>
                         </div>
-                        <div class="grupo-formulario" data-tooltip="Velocidad a la que giran los platos del disco. Velocidades comunes: 5400, 7200, 10000, 15000 RPM.">
+                        
+                        <!--velocidades tipicas de los discos del mercado -->
+                        <div class="grupo-formulario" data-tooltip="revoluciones por minuto del disco, desde 5400 en los basicos hasta 15000 en los mas rapidos">
                             <label for="vr">VR (Velocidad Rotacional):</label>
                             <input type="number" id="vr" required min="0" placeholder="5400 - 15000">
                             <span class="help-text">RPM</span>
                         </div>
-                        <div class="grupo-formulario" data-tooltip="Tiempo necesario para transferir un sector de datos. Típicamente entre 0.1 y 1.0 milisegundos por sector.">
+
+                        <!--inputs con sus descripciones -->
+                        <div class="grupo-formulario" data-tooltip="Tiempo necesario para transferir un sector de datos. Tipicamente entre 0.1 y 1.0 milisegundos por sector.">
                             <label for="tt1s">TT1S (Tiempo Transferencia/Sector):</label>
                             <input type="number" id="tt1s" required min="0" step="0.1" placeholder="0.1 - 1.0">
                             <span class="help-text">ms/sector</span>
                         </div>
-                        <div class="grupo-formulario" data-tooltip="Cantidad de bloques de datos que caben en una pista del disco. Común entre 100 y 1000 bloques.">
+                        <div class="grupo-formulario" data-tooltip="Cantidad de bloques de datos que caben en una pista del disco. Comun entre 100 y 1000 bloques.">
                             <label for="tb">TB (Bloques por Pista):</label>
                             <input type="number" id="tb" required min="1" placeholder="100 - 1000">
                             <span class="help-text">bloques/pista</span>
                         </div>
-                        <div class="grupo-formulario" data-tooltip="Número total de platos magnéticos en el disco duro. Los discos comunes tienen entre 1 y 8 platos.">
+                        <div class="grupo-formulario" data-tooltip="Número total de platos magneticos en el disco duro. Los discos comunes tienen entre 1 y 8 platos.">
                             <label for="tp">TP (Total de Platos):</label>
                             <input type="number" id="tp" required min="1" placeholder="1 - 8">
                             <span class="help-text">platos</span>
@@ -100,8 +126,8 @@
                             <span class="help-text">cilindro</span>
                         </div>
                         
-                        <!-- Lista de peticiones - ocupa toda la fila -->
-                        <div class="grupo-formulario grupo-peticiones" data-tooltip="Lista de cilindros a acceder separados por comas. Mínimo 15 peticiones. Ejemplo: 45, 20, 88, 15, 92">
+                        <!-- seccion de peticiones separada para mejor organizacion -->
+                        <div class="grupo-formulario grupo-peticiones" data-tooltip="lista de peticiones a procesar, minimo 15 para ver bien el comportamiento">
                             <div class="peticiones-header">
                                 <label for="requests">Lista de Peticiones:</label>
                                 <button id="generar-random" class="boton boton-generar">
@@ -110,7 +136,7 @@
                             </div>
                             <textarea id="requests" rows="3" required placeholder="Ej: 45, 20, 88, 15, 92, 150, 5, 35, 78, 98, 120, 44, 65, 25, 100"></textarea>
                             <span class="help-text">Mínimo 15 peticiones separadas por comas</span>
-                            <!-- Botón simular -->
+                            <!-- Boton simular -->
                             <div class="boton-simular-container">
                                 <button id="simular" class="boton boton-primario">
                                     <i class="fas fa-play"></i> Simular
@@ -118,6 +144,8 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- panel lateral con valores sugeridos -->
                     <div class="valores-recomendados">
                         <div class="imagen-disco-rigido">
                             <img src="img/disco-rigido.png" alt="Disco Rígido" class="img-disco-principal">
@@ -135,15 +163,16 @@
                         </ul>
                     </div>
                 </div>
+
+                <!-- config extra para algoritmos especificos para N-STEP-SCAN-->
                 <div id="algorithm-params" class="oculto">
                     <div class="grupo-formulario n-step-param oculto">
-                        <label for="n-step">Valor de N (para N-STEP-SCAN):</label>
+                        <label for="n-step">N para N-STEP-SCAN (default: 4):</label>
                         <input type="number" id="n-step" min="1" value="4">
                     </div>
                 </div>
             </section>
 
-            <!-- Resultados -->
             <section id="seccion-resultados" class="resultados oculto">
                 <div class="header-resultados">
                     <div class="algoritmo-usado">
@@ -195,7 +224,7 @@
                     </div>
                 </div>
 
-                <!-- Sección de Cálculos Detallados -->
+                <!-- Seccion de calculos detallados -->
                 <div class="seccion-calculos">
                     <h3><i class="fas fa-calculator"></i> Cálculos Detallados</h3>
                     <div class="selector-calculo">
@@ -209,43 +238,44 @@
                         </select>
                     </div>
                     <div id="detalle-calculo" class="detalle-calculo">
-                        <!-- Aquí se mostrarán los cálculos (resumido y expandido) -->
+                        <!-- aca se muestran los calculos (resumido y expandido) -->
                     </div>
                     <button id="btn-expandir-calculo" class="btn-expandir">
                         <i class="fas fa-chevron-down"></i> Ver más
                     </button>
                 </div>
 
-                <!-- Contenedor de gráficos -->
+                <!-- graficos para analisis visual(ayuda visual) -->
                 <div class="contenedor-graficos-principal">
-                    <!-- Gráfico principal - Movimiento del cabezal -->
+                    <!-- grafico principal del movimiento -->
                     <div class="contenedor-grafico grafico-completo">
                         <h3><i class="fas fa-chart-line"></i> Movimiento del Cabezal</h3>
                         <canvas id="grafico-movimiento"></canvas>
                     </div>
 
-                    <!-- Gráficos secundarios en grid -->
+                    <!-- graficos secundarios para analisis detallado -->
                     <div class="grid-graficos-secundarios">
-                        <!-- Gráfico de barras - Tiempos -->
+                        <!-- Grafico de barras - Tiempos -->
                         <div class="contenedor-grafico">
                             <h3><i class="fas fa-chart-bar"></i> Distribución de Tiempos</h3>
                             <canvas id="grafico-tiempos"></canvas>
                         </div>
 
-                        <!-- Gráfico circular - Proporción de tiempos -->
+                        <!-- Grafico circular - Proporcion de tiempos -->
                         <div class="contenedor-grafico">
-                            <h3><i class="fas fa-chart-pie"></i> Proporción de Tiempos</h3>
+                            <h3><i class="fas fa-chart-pie"></i> Proporcion de Tiempos</h3>
                             <canvas id="grafico-circular"></canvas>
                         </div>
 
-                        <!-- Gráfico de distancias -->
+                        <!-- Grafico de distancias -->
                         <div class="contenedor-grafico">
-                            <h3><i class="fas fa-route"></i> Distancias por Petición</h3>
+                            <h3><i class="fas fa-route"></i> Distancias por Peticion</h3>
                             <canvas id="grafico-distancias"></canvas>
                         </div>
                     </div>
                 </div>
 
+                <!-- tabla con el log completo de operaciones -->
                 <div class="secuencia-peticiones">
                     <h3><i class="fas fa-list"></i> Secuencia Detallada de Peticiones</h3>
                     <div class="tabla-wrapper">
@@ -271,45 +301,62 @@
         </main>
     </div>
 
-    <!-- Scripts de la aplicación -->
+    <!-- antes cargaba todo en un solo archivo 
+    <script src="js/todo.js"></script> 
+    -->
+    
     <script>
-        // Variable global para verificar cuando todos los scripts están cargados
+        // esto no anduvo
+        /*
+        var disco = {
+            stm: 0,
+            vr: 0,
+            calcularTiempo: function() {
+                return this.stm * this.vr;
+            }
+        };
+        */
+        
         window.modulosCargados = false;
     </script>
+    
+    <!-- carga de modulos base -->
     <script type="module">
-        // Importación inicial de módulos y configuración global
+        // importacion de los modulos principales
         import ConfiguracionDisco from './js/config.js';
         import PeticionDisco from './js/request.js';
         import * as utils from './js/utils.js';
 
-        // Hacer las clases disponibles globalmente
+        // expongo las clases al scope global, tiene el error
         window.ConfiguracionDisco = ConfiguracionDisco;
         window.PeticionDisco = PeticionDisco;
         window.utils = utils;
         
-        // Indicar que los módulos están cargados
         window.modulosCargados = true;
-        console.log('Módulos cargados correctamente');
+        console.log('inicializacion completa');
     </script>
+
+    <!-- logica principal de simulacion -->
     <script type="module" src="js/main.js"></script>
 
-    <!-- Script para depuración -->
+    <!-- manejo de errores -->
     <script>
         window.addEventListener('error', function(e) {
-            console.error('Error:', e.message);
+            // log del error en consola
+            console.error('error detectado:', e.message);
             console.error('Archivo:', e.filename);
             console.error('Línea:', e.lineno);
             console.error('Columna:', e.colno);
             console.error('Stack:', e.error?.stack);
-            alert('Error en la aplicación: ' + e.message + '\nRevisa la consola para más detalles (F12)');
+            alert('ocurrio un error - revisa la consola (F12)');
         });
 
-        // Verificar que todo esté cargado correctamente
+        // verificacion de carga completa de modulos chat,a probar
         window.addEventListener('load', function() {
-            console.log('Página cargada completamente');
+            console.log('aplicacion iniciada');
             if (!window.modulosCargados) {
-                console.error('Los módulos no se cargaron correctamente');
-                alert('Error: La aplicación debe ejecutarse desde un servidor web (usa Live Server en VS Code)');
+                console.error('modulos pendientes de cargar');
+                alert('error: ejecuta desde un servidor web (live server)');
             }
         });
     </script>

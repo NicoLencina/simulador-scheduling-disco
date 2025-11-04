@@ -1,7 +1,27 @@
-//importo los rangos validos de ConfiguracionDisco
+//necesito los rangos de config para validar
 import ConfiguracionDisco from './config.js';
 
-// Valores recomendados para el simulador
+/* al principio quise traer los valores de una api pero era demasiado
+async function obtenerValoresRecomendados() {
+    const response = await fetch('api/defaults.json');
+    return response.json();
+}
+*/
+
+/* esto lo empece con una clase pero me quedo muy complejo al pedo
+class Autocompletador {
+    constructor() {
+        this.valores = {};  //aca iban todos los valores default
+        this.ultimosUsados = [];  //guarde esto pero dsps no lo use
+    }
+    cargarValores() {
+        //esto tampoco termine usando
+        return fetch('/api/valores.json');
+    }
+}
+*/
+
+// valores q encontre buscando en internet sobre discos actuales
 const valoresRecomendados = {
     stm: 0.5,          // ms/cilindro - valor típico para discos modernos
     vr: 7200,         // RPM - velocidad común en discos actuales
@@ -13,7 +33,13 @@ const valoresRecomendados = {
     'initial-position': 0  // posición inicial del cabezal
 };
 
-// Validar q los valores recomendados estén dentro d los rangos
+/* probe guardar en localStorage x si querian conservar valores
+pero dsps pense q mejor q empiecen limpios siempre
+const guardados = JSON.parse(localStorage.getItem('defaults')) || {};
+Object.assign(valoresRecomendados, guardados);
+*/
+
+// me fijo q los valores no se vayan de rango
 Object.entries(valoresRecomendados).forEach(([campo, valor]) => {
     const nombreCampo = campo === 'initial-position' ? 'POS' : campo.toUpperCase();
     const rango = ConfiguracionDisco.RANGOS[nombreCampo];
@@ -23,15 +49,22 @@ Object.entries(valoresRecomendados).forEach(([campo, valor]) => {
 });
 
 /**
- * Lista d campos q se pueden autocompletar
+ * campos q se pueden completar automaticamente
  * @type {string[]}
  */
 const CAMPOS = ['stm', 'vr', 'tt1s', 'tb', 'tp', 'pc', 'sc', 'initial-position'];
 
+/* antes lo hacia con jquery pero era mucho peso para tan poco
+function actualizarCampo($elem, valor) {
+    $elem.val(valor).animate({
+        backgroundColor: "#e3f2fd"
+    }, 300);
+}
+*/
+
 /**
- * Actualiza un campo con animación
- * @param {HTMLElement} elemento - Input a actualizar
- * @param {number} valor - Nuevo valor
+ * le pongo una animacion copada cuando cambia el valor
+ * dsps la saco para q no quede marcado
  */
 function actualizarCampo(elemento, valor) {
     if (!elemento) return;
@@ -45,9 +78,16 @@ function actualizarCampo(elemento, valor) {
     }, 500);
 }
 
-/**
- * Función para autocompletar los campos con valores recomendados
- */
+/* esto era mas complejo pero lo simplifique
+function autocompletarCampos() {
+    const promesas = CAMPOS.map(async campo => {
+        const valor = await calcularValorOptimo(campo);
+        return actualizarCampo(campo, valor);
+    });
+    return Promise.all(promesas);
+}
+*/
+
 function autocompletarCampos() {
     try {
         // Recorro cada campo y lo actualizo si existe
@@ -63,10 +103,14 @@ function autocompletarCampos() {
     }
 }
 
-/**
- * Configura los tooltips de ayuda para los inputs
- * @param {HTMLElement[]} inputs - Lista de inputs
- */
+/* primero los tooltips eran mas complejos pero quedaban feos
+const tooltipConfig = {
+    delay: 200,
+    html: true,
+    template: '<div class="tooltip">...</div>'
+}
+*/
+
 function configurarTooltips(inputs) {
     inputs.forEach(input => {
         const helpText = input.nextElementSibling;
@@ -77,9 +121,7 @@ function configurarTooltips(inputs) {
     });
 }
 
-/**
- * Inicializa la funcionalidad de autocompletado
- */
+// esto inicializa todo - lo puse en una funcion x si hay q recargar
 function inicializarAutocompletado() {
     try {
         // Configuro el botón d autocompletar
@@ -98,10 +140,10 @@ function inicializarAutocompletado() {
     }
 }
 
-// Inicializo cuando el DOM esté listo
+// arranco cuando carga la pagina
 document.readyState === 'loading'
     ? document.addEventListener('DOMContentLoaded', inicializarAutocompletado)
     : inicializarAutocompletado();
 
-// Exporto solo lo necesario
+// x ahora solo exporto esto, dsps veo si necesito mas
 export { inicializarAutocompletado };

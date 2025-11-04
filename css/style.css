@@ -377,6 +377,17 @@ input:checked + .switch-slider:before {
         gap: 1.5rem;
         max-width: 800px;
     }
+
+    .controles-superiores {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .header-config {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 
 /* estilos para los formularios de configuracion */
@@ -1566,25 +1577,6 @@ tbody tr:nth-child(even):hover td {
     .header-config {
         flex-direction: column;
         align-items: flex-start;
-    }
-    
-    .controles-superiores {
-        width: 100%;
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .modo-validacion {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .selector-algoritmo-container {
-        width: 100%;
-    }
-    
-    .selector-algoritmo-container select {
-        flex: 1;
     }
 }
 
