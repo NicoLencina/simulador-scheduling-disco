@@ -1,10 +1,10 @@
 # Simulador de Algoritmos de Scheduling de Disco
 
-Aplicacion web interactiva para simular y comparar diferentes algoritmos de planificacion del disco duro.
+Aplicacion web para simular y comparar algoritmos de planificacion de disco. Este simulador te permite entender como funcionan los diferentes algoritmos de scheduling de disco de manera visual e interactiva.
 
-## Demo en Vivo
+## Demo Online
 
-🌐 [Ver Demo en GitHub Pages](https://nicolencina.github.io/simulador-scheduling-disco/)
+[Ver Demo](https://nicolencina.github.io/simulador-scheduling-disco/)
 
 ---
 
@@ -40,55 +40,54 @@ Aplicacion web interactiva para simular y comparar diferentes algoritmos de plan
 
 ## Como Usar
 
-1. Clona o descarga el repositorio
-2. Abre el archivo `index.html` con Live Server (VS Code)
-3. Completa los parámetros del disco:
-   - Usa el botón "Autocompletar" para valores predeterminados
-   - O ingresa manualmente siguiendo los rangos recomendados
-4. Ingresa las peticiones (mínimo 15):
-   - Manualmente: números separados por comas
-   - O usa el botón "Generar" para crear aleatorias
-5. Selecciona un algoritmo de scheduling
-6. Ajusta el modo de operación:
-   - Modo Estricto: valores dentro de rangos recomendados
-   - Modo Libre: sin restricciones de valores
-7. Haz clic en "Simular"
-8. Analiza los resultados:
-   - Gráfico de movimiento del cabezal
-   - Distribución de tiempos
-   - Estadísticas detalladas
-   - Secuencia de peticiones
+1. Ve a la demo online o descarga el repositorio
+2. Si lo descargaste, abre `index.html` con Live Server
+3. Configura el disco:
+   - Usa "Autocompletar" para valores por defecto
+   - O ingresa tus propios valores
+4. Agrega peticiones (minimo 15):
+   - Escribe numeros separados por comas
+   - O usa "Generar" para crear aleatorias
+5. Elige un algoritmo de scheduling
+6. Selecciona el modo:
+   - Estricto: usa rangos recomendados
+   - Libre: sin restricciones
+7. Dale click a "Simular"
+8. Revisa los resultados:
+   - Movimiento del cabezal
+   - Tiempos de operacion
+   - Metricas detalladas
+   - Orden de las peticiones
 
 ## Estructura del Proyecto
 
 ```
 SCHEDULING DE DISCO -Simulador/
 │
-├── index.html              # Interfaz principal
+├── index.html              # Pagina principal
 ├── css/
-│   ├── style.css          # Estilos principales
-│   └── tooltip.css        # Estilos para tooltips
+│   ├── style.css          # Estilos generales
+│   └── tooltip.css        # Estilos de tooltips
 ├── js/
-│   ├── main.js            # Punto de entrada y configuración global
-│   ├── config.js          # Clase ConfiguracionDisco
-│   ├── request.js         # Clase PeticionDisco
-│   ├── utils.js           # Funciones comunes
-│   ├── eventos.js         # Manejadores de eventos UI
-│   ├── graficos.js        # Visualización con Chart.js
-│   ├── simulacion.js      # Lógica de simulación
-│   └── algoritmos/        # Implementación de algoritmos
+│   ├── main.js            # Archivo principal
+│   ├── config.js          # Configuracion del disco
+│   ├── request.js         # Manejo de peticiones
+│   ├── utils.js           # Funciones auxiliares
+│   ├── ui.js             # Interfaz de usuario
+│   ├── graficos.js        # Generacion de graficos
+│   ├── calculos.js       # Calculos y metricas
+│   └── algoritmos/        # Implementaciones
 │       ├── fifo.js        # First In First Out
 │       ├── sstf.js        # Shortest Seek Time First
-│       ├── scan.js        # SCAN (Elevator)
+│       ├── scan.js        # SCAN 
 │       ├── cscan.js       # Circular SCAN
 │       ├── look.js        # LOOK
-│       ├── clook.js       # Circular LOOK
-│       ├── fscan.js       # Frozen SCAN
+│       ├── clook.js       # C-LOOK
+│       ├── fscan.js       # F-SCAN
 │       └── nstepscan.js   # N-Step-SCAN
-├── img/                   # Imágenes y recursos
-└── documentos/            # Documentación adicional
-    ├── guia_estilo.md     # Guía de estilo del código
-    └── VALORES_PARAMETROS.md  # Documentación de parámetros
+├── img/                   # Imagenes
+└── documentos/            # Documentacion
+    └── VALORES_PARAMETROS.md  # Parametros del sistema
 
 ```
 
@@ -116,17 +115,16 @@ SCHEDULING DE DISCO -Simulador/
 - JavaScript habilitado
 - Conexión a Internet (para CDN de Chart.js y FontAwesome)
 
-## Instalacion
+## Instalacion Local
 
 ```bash
-# Clonar el repositorio
-git clone https://github.com/TU-USUARIO/simulador-scheduling-disco.git
+# Clonar el repo
+git clone https://github.com/NicoLencina/simulador-scheduling-disco.git
 
-# Abrir con VS Code
+# Abrir carpeta
 cd simulador-scheduling-disco
-code .
 
-# Usar Live Server para ejecutar
+# Ejecutar con Live Server en VS Code
 # Click derecho en index.html > Open with Live Server
 ```
 
