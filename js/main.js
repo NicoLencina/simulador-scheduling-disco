@@ -1113,27 +1113,39 @@ function dibujarGraficoTiempos(tiempoBusqueda, tiempoRotacion, tiempoTransferenc
     const maxValor = Math.max(...datos.map(d => d.valor));
     const escalaY = (altoGrafico - 30) / maxValor;
     
-    // Mantener proporciones consistentes sin importar el número de peticiones
+    // Configuración de barras anchas fijas
     const numBarras = datos.length;
-    const anchoBarra = Math.min(55, anchoGrafico / (numBarras * 2)); // Ancho adaptativo
-    const espacioEntre = anchoBarra / 2; // Espacio proporcional al ancho de la barra
-    const anchoTotalNecesario = (anchoBarra * numBarras) + (espacioEntre * (numBarras + 1));
+    const anchoBarra = 70; // Ancho fijo más grande para las barras
+    const espacioEntre = 20; // Espacio fijo entre barras
+    const anchoTotalNecesario = (anchoBarra * numBarras) + (espacioEntre * (numBarras - 1));
     const offset = (anchoGrafico - anchoTotalNecesario) / 2; // Centrar las barras
     
     // Dibujar barras
     datos.forEach((dato, i) => {
-        const x = margenLateral + offset + espacioEntre + (i * (anchoBarra + espacioEntre));
+        const x = margenLateral + offset + (i * (anchoBarra + espacioEntre));
         const alturaBarra = dato.valor * escalaY;
         const y = canvas.height - margenBottom - alturaBarra;
         
-        // Gradiente para la barra
+        // Gradiente para la barra con más intensidad
         const gradiente = ctx.createLinearGradient(x, y, x, canvas.height - margenBottom);
         gradiente.addColorStop(0, dato.color);
-        gradiente.addColorStop(1, dato.color + 'AA');
+        gradiente.addColorStop(1, dato.color + 'CC'); // Más opaco
+        
+        // Barra con sombra
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
         
         // Barra
         ctx.fillStyle = gradiente;
         ctx.fillRect(x, y, anchoBarra, alturaBarra);
+        
+        // Quitar sombra para el borde
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
         
         // Borde de la barra
         ctx.strokeStyle = dato.color;
