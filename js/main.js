@@ -503,9 +503,19 @@ function procesarPeticiones(requestsStr) {
             return num;
         });
         
+    // Si hay menos de 15 peticiones, completar hasta 15 si el usuario desea
     if(numeros.length < 15) {
-        mostrarErrorCampo('requests', `Insuficientes peticiones: ${numeros.length}/15. Agregue ${15 - numeros.length} más.`);
-        throw new Error('Mínimo 15 peticiones requeridas');
+        const faltantes = 15 - numeros.length;
+        const completar = window.confirm(`Tiene ${numeros.length} peticiones. ¿Desea completar automáticamente hasta 15 peticiones? (Se agregarán ${faltantes} peticiones aleatorias)`);
+        
+        if(completar) {
+            // Generar peticiones aleatorias adicionales
+            for(let i = 0; i < faltantes; i++) {
+                numeros.push(Math.floor(Math.random() * 200));
+            }
+            // Actualizar el campo con las nuevas peticiones
+            document.getElementById('requests').value = numeros.join(', ');
+        }
     }
     
     //convierto cada numero en una PeticionDisco y calculo sus tiempos

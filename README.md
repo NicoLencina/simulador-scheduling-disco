@@ -45,7 +45,7 @@ Aplicacion web para simular y comparar algoritmos de planificacion de disco. Est
 3. Configura el disco:
    - Usa "Autocompletar" para valores por defecto
    - O ingresa tus propios valores
-4. Agrega peticiones (minimo 15):
+4. Agrega peticiones (se completa a 15 si lo deseas):
    - Escribe numeros separados por comas
    - O usa "Generar" para crear aleatorias
 5. Elige un algoritmo de scheduling

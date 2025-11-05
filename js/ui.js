@@ -102,9 +102,9 @@ export function mostrarParamsExtra() {
 
 /**
  * Genera una lista aleatoria de peticiones
+ * @param {number} cantidad - Cantidad de peticiones a generar (por defecto 15)
  */
-export function generarPeticionesRandom() {
-    const cantidad = 15;
+export function generarPeticionesRandom(cantidad = 15) {
     const maxCilindro = 199;
     
     const peticiones = Array.from({ length: cantidad }, 

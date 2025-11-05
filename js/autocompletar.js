@@ -2,16 +2,16 @@
 import ConfiguracionDisco from './config.js';
 
 
-// Valores predeterminados basados en especificaciones típicas de discos modernos
+// valores q encontre buscando en internet sobre discos actuales
 const valoresRecomendados = {
-    stm: 0.5,          // Tiempo de movimiento entre cilindros (ms/cilindro)
-    vr: 7200,         // Velocidad de rotación (RPM) 
-    tt1s: 0.2,        // Tiempo de transferencia por sector (ms)
-    tb: 500,          // Bloques por pista
-    tp: 4,            // Total de platos
-    pc: 2,            // Platos por cilindro
-    sc: 128,          // Sectores por cilindro
-    'initial-position': 0  // Posición inicial del cabezal
+    stm: 0.5,          // ms/cilindro - valor típico para discos modernos
+    vr: 7200,         // RPM - velocidad común en discos actuales
+    tt1s: 0.2,        // ms - tiempo promedio de transferencia
+    tb: 500,          // bloques por pista - valor realista
+    tp: 4,            // total de platos - común en discos de consumo
+    pc: 2,            // platos por cilindro - valor razonable
+    sc: 128,          // sectores por cilindro - potencia de 2 común
+    'initial-position': 0  // posición inicial del cabezal
 };
 
 // me fijo q los valores no se vayan de rango
@@ -32,9 +32,8 @@ const CAMPOS = ['stm', 'vr', 'tt1s', 'tb', 'tp', 'pc', 'sc', 'initial-position']
 
 
 /**
- * Actualiza el valor de un campo con una animación visual
- * @param {HTMLElement} elemento - El elemento input a actualizar
- * @param {number} valor - El nuevo valor a asignar
+ * le pongo una animacion copada cuando cambia el valor
+ * dsps la saco para q no quede marcado
  */
 function actualizarCampo(elemento, valor) {
     if (!elemento) return;
@@ -49,9 +48,6 @@ function actualizarCampo(elemento, valor) {
 }
 
 
-/**
- * Aplica los valores recomendados a todos los campos del formulario
- */
 function autocompletarCampos() {
     try {
         // Recorro cada campo y lo actualizo si existe
@@ -69,10 +65,6 @@ function autocompletarCampos() {
 
 
 
-/**
- * Configura los tooltips de ayuda para los campos de entrada
- * @param {NodeList} inputs - Lista de elementos input
- */
 function configurarTooltips(inputs) {
     inputs.forEach(input => {
         const helpText = input.nextElementSibling;
@@ -83,9 +75,7 @@ function configurarTooltips(inputs) {
     });
 }
 
-/**
- * Inicializa los eventos y comportamientos del autocompletado
- */
+// esto inicializa todo - lo puse en una funcion x si hay q recargar
 function inicializarAutocompletado() {
     try {
         // Configuro el botón d autocompletar
