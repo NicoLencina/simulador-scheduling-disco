@@ -70,16 +70,37 @@ export const formatearNumero = (numero) => {
 /**
  * Valida la configuracion inicial del disco
  * @param {Object} configuracion - Objeto con la configuracion del disco
+ * @param {boolean} modoLibre - Si está en modo libre o no
  * @returns {string|null} Mensaje de error o null si es valido
  */
-export const validarConfiguracionInicial = (configuracion) => {
-    if (!configuracion.stm || configuracion.stm <= 0) return "El multiplicador de tiempo de búsqueda debe ser mayor a 0";
-    if (!configuracion.vr || configuracion.vr <= 0) return "La velocidad rotacional debe ser mayor a 0";
-    if (!configuracion.tt1s || configuracion.tt1s <= 0) return "El tiempo de transferencia por sector debe ser mayor a 0";
-    if (!configuracion.tb || configuracion.tb <= 0) return "Los bloques por pista deben ser mayor a 0";
-    if (!configuracion.tp || configuracion.tp <= 0) return "El total de platos debe ser mayor a 0";
-    if (!configuracion.pc || configuracion.pc <= 0) return "Los platos por cilindro deben ser mayor a 0";
-    if (!configuracion.sc || configuracion.sc <= 0) return "Los sectores por cilindro deben ser mayor a 0";
+export const validarConfiguracionInicial = (configuracion, modoLibre = false) => {
+    // En ambos modos validamos que los campos no estén vacíos y sean números
+    if (!configuracion.stm || isNaN(configuracion.stm)) return "El multiplicador de tiempo de búsqueda debe ser un número válido";
+    if (!configuracion.vr || isNaN(configuracion.vr)) return "La velocidad rotacional debe ser un número válido";
+    if (!configuracion.tt1s || isNaN(configuracion.tt1s)) return "El tiempo de transferencia por sector debe ser un número válido";
+    if (!configuracion.tb || isNaN(configuracion.tb)) return "Los bloques por pista deben ser un número válido";
+    if (!configuracion.tp || isNaN(configuracion.tp)) return "El total de platos debe ser un número válido";
+    if (!configuracion.pc || isNaN(configuracion.pc)) return "Los platos por cilindro deben ser un número válido";
+    if (!configuracion.sc || isNaN(configuracion.sc)) return "Los sectores por cilindro deben ser un número válido";
+
+    // En modo estricto, validamos que sean mayores que 0
+    if (!modoLibre) {
+        if (configuracion.stm <= 0) return "El multiplicador de tiempo de búsqueda debe ser mayor a 0";
+        if (configuracion.vr <= 0) return "La velocidad rotacional debe ser mayor a 0";
+        if (configuracion.tt1s <= 0) return "El tiempo de transferencia por sector debe ser mayor a 0";
+        if (configuracion.tb <= 0) return "Los bloques por pista deben ser mayor a 0";
+        if (configuracion.tp <= 0) return "El total de platos debe ser mayor a 0";
+        if (configuracion.pc <= 0) return "Los platos por cilindro deben ser mayor a 0";
+        if (configuracion.sc <= 0) return "Los sectores por cilindro deben ser mayor a 0";
+    }
+
+    // La validación PC <= TP siempre se aplica ya que es una restricción física
+    if (configuracion.pc > configuracion.tp) {
+        return modoLibre ?
+            `Restricción física: Los platos por cilindro (${configuracion.pc}) no pueden ser mayores que el total de platos (${configuracion.tp}). Esta limitación aplica incluso en modo libre.` :
+            "Los platos por cilindro no pueden ser mayores que el total de platos";
+    }
+
     return null;
 };
 

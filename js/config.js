@@ -36,17 +36,47 @@ class ConfiguracionDisco {
         //uso destructuring para mas claridad
         const { stm, vr, tt1s, tb, tp, pc, sc, posicionInicial = 0 } = parametros;
         
-        //convierto a numeros y valido los rangos
-        this.multiplicadorTiempoBusqueda = this._validarParametro(stm, 'STM');
-        this.velocidadRotacional = this._validarParametro(vr, 'VR');
-        this.tiempoTransferenciaSector = this._validarParametro(tt1s, 'TT1S');
-        this.bloquesPorPista = this._validarParametro(tb, 'TB');
-        this.totalPlatos = this._validarParametro(tp, 'TP');
-        this.platosPorCilindro = this._validarParametro(pc, 'PC');
-        this.sectoresPorCilindro = this._validarParametro(sc, 'SC');
-        this.posicionActual = this._validarParametro(posicionInicial, 'POS');
+        // Verificar si está en modo libre
+        const modoLibre = document.getElementById('modo-libre')?.checked || false;
         
-        this.validarConfig();
+        if (modoLibre) {
+            // En modo libre solo convertimos a números y validamos que no estén vacíos
+            this.multiplicadorTiempoBusqueda = this._validarNumero(stm, 'STM');
+            this.velocidadRotacional = this._validarNumero(vr, 'VR');
+            this.tiempoTransferenciaSector = this._validarNumero(tt1s, 'TT1S');
+            this.bloquesPorPista = this._validarNumero(tb, 'TB');
+            this.totalPlatos = this._validarNumero(tp, 'TP');
+            this.platosPorCilindro = this._validarNumero(pc, 'PC');
+            this.sectoresPorCilindro = this._validarNumero(sc, 'SC');
+            this.posicionActual = this._validarNumero(posicionInicial, 'POS');
+        } else {
+            //convierto a numeros y valido los rangos en modo estricto
+            this.multiplicadorTiempoBusqueda = this._validarParametro(stm, 'STM');
+            this.velocidadRotacional = this._validarParametro(vr, 'VR');
+            this.tiempoTransferenciaSector = this._validarParametro(tt1s, 'TT1S');
+            this.bloquesPorPista = this._validarParametro(tb, 'TB');
+            this.totalPlatos = this._validarParametro(tp, 'TP');
+            this.platosPorCilindro = this._validarParametro(pc, 'PC');
+            this.sectoresPorCilindro = this._validarParametro(sc, 'SC');
+            this.posicionActual = this._validarParametro(posicionInicial, 'POS');
+        }
+        
+        // Validamos siempre las restricciones físicas
+        this.validarRestriccionesFisicas();
+    }
+
+    /**
+     * Valida que un valor sea un número válido
+     * @param {string|number} valor - Valor a validar
+     * @param {string} nombre - Nombre del parámetro
+     * @returns {number} Valor convertido a número
+     */
+    _validarNumero(valor, nombre) {
+        const num = Number(valor);
+        if (isNaN(num)) {
+            throw new Error(`${nombre} debe ser un número válido`);
+        }
+        return num;
     }
 
     /**
@@ -65,17 +95,25 @@ class ConfiguracionDisco {
     }
 
     /**
-     * Valida que los parametros del disco sean validos
-     * @throws {Error} Si algun parametro es invalido
+     * Valida las restricciones físicas que siempre deben cumplirse
+     * @throws {Error} Si se violan las restricciones físicas
      */
-    validarConfig() {
+    validarRestriccionesFisicas() {
+        const modoLibre = document.getElementById('modo-libre')?.checked || false;
+        
         //valido relaciones entre parametros
         if (this.totalPlatos < this.platosPorCilindro) {
-            throw new Error("El total de platos debe ser mayor o igual a los platos por cilindro");
+            const mensaje = modoLibre ?
+                `Restricción física: Los platos por cilindro (${this.platosPorCilindro}) no pueden ser mayores que el total de platos (${this.totalPlatos}). Esta es una limitación del hardware que aplica incluso en modo libre.` :
+                "El total de platos debe ser mayor o igual a los platos por cilindro";
+            throw new Error(mensaje);
         }
         
         if (this.bloquesPorPista * this.totalPlatos < this.sectoresPorCilindro) {
-            throw new Error("La capacidad total debe ser coherente con los sectores por cilindro");
+            const mensaje = modoLibre ?
+                `Restricción física: El número total de sectores (bloques × platos = ${this.bloquesPorPista} × ${this.totalPlatos} = ${this.bloquesPorPista * this.totalPlatos}) debe ser mayor o igual a los sectores por cilindro (${this.sectoresPorCilindro}). Esta es una limitación física que aplica incluso en modo libre.` :
+                "La capacidad total debe ser coherente con los sectores por cilindro";
+            throw new Error(mensaje);
         }
     }
 

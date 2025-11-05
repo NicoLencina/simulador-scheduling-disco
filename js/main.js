@@ -396,50 +396,41 @@ function obtenerParametros() {
         nstep: Number(document.getElementById('n-step').value)
     };
     
-    // Validar que no estén vacíos (siempre obligatorio)
-    if (!params.stm || params.stm <= 0) {
-        mostrarErrorCampo('stm', 'Ingrese el tiempo de búsqueda (STM). Debe ser mayor a 0.');
-        throw new Error('Complete el campo STM');
+    // En modo libre solo validamos que los campos no estén vacíos y sean números
+    // En modo estricto también validamos que sean mayores que 0
+    const camposNumericos = [
+        { id: 'stm', nombre: 'tiempo de búsqueda (STM)' },
+        { id: 'vr', nombre: 'velocidad rotacional (VR)' },
+        { id: 'tt1s', nombre: 'tiempo de transferencia (TT1S)' },
+        { id: 'tb', nombre: 'bloques por pista (TB)' },
+        { id: 'tp', nombre: 'total de platos (TP)' },
+        { id: 'pc', nombre: 'platos por cilindro (PC)' },
+        { id: 'sc', nombre: 'sectores por cilindro (SC)' },
+        { id: 'initial-position', nombre: 'posición inicial del cabezal' }
+    ];
+
+    for (const campo of camposNumericos) {
+        const valor = params[campo.id === 'initial-position' ? 'posInicial' : campo.id];
+        
+        // Validar que no esté vacío y sea un número
+        if (valor === undefined || valor === null || isNaN(valor)) {
+            mostrarErrorCampo(campo.id, `Ingrese un valor numérico para ${campo.nombre}`);
+            throw new Error(`Complete el campo ${campo.id.toUpperCase()}`);
+        }
+
+        // En modo estricto, validar que sea mayor que 0
+        if (!modoLibre && valor <= 0) {
+            mostrarErrorCampo(campo.id, `El valor de ${campo.nombre} debe ser mayor a 0 en modo estricto`);
+            throw new Error(`${campo.id.toUpperCase()} debe ser mayor a 0`);
+        }
     }
     
-    if (!params.vr || params.vr <= 0) {
-        mostrarErrorCampo('vr', 'Ingrese la velocidad rotacional (VR). Debe ser mayor a 0.');
-        throw new Error('Complete el campo VR');
-    }
-    
-    if (!params.tt1s || params.tt1s <= 0) {
-        mostrarErrorCampo('tt1s', 'Ingrese el tiempo de transferencia (TT1S). Debe ser mayor a 0.');
-        throw new Error('Complete el campo TT1S');
-    }
-    
-    if (!params.tb || params.tb <= 0) {
-        mostrarErrorCampo('tb', 'Ingrese bloques por pista (TB). Debe ser mayor a 0.');
-        throw new Error('Complete el campo TB');
-    }
-    
-    if (!params.tp || params.tp <= 0) {
-        mostrarErrorCampo('tp', 'Ingrese total de platos (TP). Debe ser mayor a 0.');
-        throw new Error('Complete el campo TP');
-    }
-    
-    if (!params.pc || params.pc <= 0) {
-        mostrarErrorCampo('pc', 'Ingrese platos por cilindro (PC). Debe ser mayor a 0.');
-        throw new Error('Complete el campo PC');
-    }
-    
-    if (!params.sc || params.sc <= 0) {
-        mostrarErrorCampo('sc', 'Ingrese sectores por cilindro (SC). Debe ser mayor a 0.');
-        throw new Error('Complete el campo SC');
-    }
-    
-    if (isNaN(params.posInicial) || params.posInicial < 0) {
-        mostrarErrorCampo('initial-position', 'Ingrese la posición inicial del cabezal (≥ 0)');
-        throw new Error('Complete el campo Posición Inicial');
-    }
-    
-    // Validar relación PC <= TP (siempre obligatorio)
+    // Validar relación PC <= TP (siempre obligatorio por ser restricción física)
     if (params.pc > params.tp) {
-        mostrarErrorCampo('pc', `PC no puede ser mayor que TP (${params.tp})`);
+        const mensaje = modoLibre ? 
+            `Error: Los platos por cilindro (PC = ${params.pc}) no pueden ser mayores que el total de platos (TP = ${params.tp}). Esta es una restricción física que aplica incluso en modo libre.` :
+            `PC no puede ser mayor que TP (${params.tp})`;
+        mostrarErrorCampo('pc', mensaje);
         throw new Error('PC mayor que TP');
     }
     
