@@ -494,20 +494,7 @@ function procesarPeticiones(requestsStr) {
             return num;
         });
         
-    // Si hay menos de 15 peticiones, completar hasta 15 si el usuario desea
-    if(numeros.length < 15) {
-        const faltantes = 15 - numeros.length;
-        const completar = window.confirm(`Tiene ${numeros.length} peticiones. ¿Desea completar automáticamente hasta 15 peticiones? (Se agregarán ${faltantes} peticiones aleatorias)`);
-        
-        if(completar) {
-            // Generar peticiones aleatorias adicionales
-            for(let i = 0; i < faltantes; i++) {
-                numeros.push(Math.floor(Math.random() * 200));
-            }
-            // Actualizar el campo con las nuevas peticiones
-            document.getElementById('requests').value = numeros.join(', ');
-        }
-    }
+    // No necesitamos autocompletar, procesamos las peticiones tal como están
     
     //convierto cada numero en una PeticionDisco y calculo sus tiempos
     return numeros.map((n, i) => {
@@ -908,7 +895,8 @@ function dibujarGrafico(cilindros, tiempos) {
     const cilindrosCompletos = [configDisco.posicionActual, ...cilindros];
     const tiemposCompletos = [0, ...tiempos];
     
-    const escalaX = anchoGrafico / (cilindrosCompletos.length - 1);
+    // Mantenemos una escala estándar como si fueran 15 peticiones
+    const escalaX = anchoGrafico / Math.max(14, cilindrosCompletos.length - 1);
     const escalaY = altoGrafico / rangoCilindros;
     
     // Función auxiliar para convertir coordenadas
@@ -1125,10 +1113,10 @@ function dibujarGraficoTiempos(tiempoBusqueda, tiempoRotacion, tiempoTransferenc
     const maxValor = Math.max(...datos.map(d => d.valor));
     const escalaY = (altoGrafico - 30) / maxValor;
     
-    // Calcular espaciado - barras anchas y bien separadas
+    // Mantener proporciones consistentes sin importar el número de peticiones
     const numBarras = datos.length;
-    const anchoBarra = 55; // Ancho fijo de 55px por barra
-    const espacioEntre = 27; // 27px de separación entre barras
+    const anchoBarra = Math.min(55, anchoGrafico / (numBarras * 2)); // Ancho adaptativo
+    const espacioEntre = anchoBarra / 2; // Espacio proporcional al ancho de la barra
     const anchoTotalNecesario = (anchoBarra * numBarras) + (espacioEntre * (numBarras + 1));
     const offset = (anchoGrafico - anchoTotalNecesario) / 2; // Centrar las barras
     
@@ -1346,8 +1334,16 @@ function dibujarGraficoDistancias(peticiones, posInicial) {
     ctx.stroke();
     
     // Dibujar columnas
+    const numPeticiones = distancias.length;
+    const columnasEstandar = 15; // Mantenemos el ancho como si fueran 15 columnas
+    const anchoEstandar = anchoGrafico / columnasEstandar;
+    
+    // Ajustamos el espacio entre columnas para distribuir uniformemente
+    const espacioTotal = anchoGrafico - (numPeticiones * (anchoEstandar - 4));
+    const espacioEntre = espacioTotal / (numPeticiones + 1);
+    
     distancias.forEach((dato, i) => {
-        const x = margenIzq + (i * anchoColumna);
+        const x = margenIzq + espacioEntre + (i * (anchoEstandar + espacioEntre));
         const altura = dato.distancia * escalaY;
         const y = canvas.height - margenBot - altura;
         
@@ -1367,22 +1363,22 @@ function dibujarGraficoDistancias(peticiones, posInicial) {
         gradiente.addColorStop(1, color + '80');
         
         ctx.fillStyle = gradiente;
-        ctx.fillRect(x + 2, y, anchoColumna - 4, altura);
+        ctx.fillRect(x, y, anchoEstandar - 4, altura);
         
         // Valor encima si hay espacio
-        if (distancias.length <= 20 && dato.distancia > 0) {
+        if (numPeticiones <= 20 && dato.distancia > 0) {
             ctx.fillStyle = '#212529';
             ctx.font = 'bold 10px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(dato.distancia, x + anchoColumna / 2, y - 5);
+            ctx.fillText(dato.distancia, x + (anchoEstandar - 4) / 2, y - 5);
         }
         
-        // Número de petición debajo (solo algunos si hay muchas)
-        if (distancias.length <= 20 || i % Math.ceil(distancias.length / 15) === 0) {
+        // Número de petición debajo (mostramos todos si hay pocas, o algunos si hay muchas)
+        if (numPeticiones <= 20 || i % Math.ceil(numPeticiones / 10) === 0) {
             ctx.fillStyle = '#495057';
             ctx.font = '10px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(dato.indice, x + anchoColumna / 2, canvas.height - margenBot + 15);
+            ctx.fillText(dato.indice, x + (anchoEstandar - 4) / 2, canvas.height - margenBot + 15);
         }
     });
     
