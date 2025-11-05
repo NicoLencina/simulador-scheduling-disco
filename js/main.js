@@ -1323,7 +1323,15 @@ function dibujarGraficoDistancias(peticiones, posInicial) {
     
     const maxDistancia = Math.max(...distancias.map(d => d.distancia));
     const escalaY = altoGrafico / maxDistancia;
-    const anchoColumna = anchoGrafico / distancias.length;
+    
+    // Calculamos el ancho de columna basado en el espacio disponible
+    const numPeticiones = distancias.length;
+    const espacioEntreColumnas = 2; // Reducimos el espacio entre columnas
+    const espacioTotalEntreColumnas = espacioEntreColumnas * (numPeticiones - 1);
+    const anchoColumna = (anchoGrafico - espacioTotalEntreColumnas) / numPeticiones;
+    
+    // No necesitamos ajustar el margen ya que usaremos todo el espacio disponible
+    const margenIzqAjustado = margenIzq;
     
     // Dibujar línea base
     ctx.strokeStyle = '#dee2e6';
@@ -1334,16 +1342,8 @@ function dibujarGraficoDistancias(peticiones, posInicial) {
     ctx.stroke();
     
     // Dibujar columnas
-    const numPeticiones = distancias.length;
-    const columnasEstandar = 15; // Mantenemos el ancho como si fueran 15 columnas
-    const anchoEstandar = anchoGrafico / columnasEstandar;
-    
-    // Ajustamos el espacio entre columnas para distribuir uniformemente
-    const espacioTotal = anchoGrafico - (numPeticiones * (anchoEstandar - 4));
-    const espacioEntre = espacioTotal / (numPeticiones + 1);
-    
     distancias.forEach((dato, i) => {
-        const x = margenIzq + espacioEntre + (i * (anchoEstandar + espacioEntre));
+        const x = margenIzqAjustado + (i * (anchoColumna + espacioEntreColumnas));
         const altura = dato.distancia * escalaY;
         const y = canvas.height - margenBot - altura;
         
@@ -1362,24 +1362,35 @@ function dibujarGraficoDistancias(peticiones, posInicial) {
         gradiente.addColorStop(0, color);
         gradiente.addColorStop(1, color + '80');
         
+        // Dibujar barra
         ctx.fillStyle = gradiente;
-        ctx.fillRect(x, y, anchoEstandar - 4, altura);
+        ctx.fillRect(x, y, anchoColumna, altura);
         
-        // Valor encima si hay espacio
-        if (numPeticiones <= 20 && dato.distancia > 0) {
+        // Mostrar valor encima de la barra
+        if (dato.distancia > 0) {
+            ctx.save();
             ctx.fillStyle = '#212529';
             ctx.font = 'bold 10px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(dato.distancia, x + (anchoEstandar - 4) / 2, y - 5);
+            ctx.fillText(Math.round(dato.distancia), x + anchoColumna / 2, y - 5);
+            ctx.restore();
         }
         
-        // Número de petición debajo (mostramos todos si hay pocas, o algunos si hay muchas)
-        if (numPeticiones <= 20 || i % Math.ceil(numPeticiones / 10) === 0) {
-            ctx.fillStyle = '#495057';
-            ctx.font = '10px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(dato.indice, x + (anchoEstandar - 4) / 2, canvas.height - margenBot + 15);
+        // Número de petición debajo
+        ctx.save();
+        ctx.fillStyle = '#495057';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        
+        // Si hay muchas peticiones, rotar los números
+        if (numPeticiones > 15) {
+            ctx.translate(x + anchoColumna / 2, canvas.height - margenBot + 15);
+            ctx.rotate(-Math.PI / 4);
+            ctx.fillText(dato.indice, 0, 0);
+        } else {
+            ctx.fillText(dato.indice, x + anchoColumna / 2, canvas.height - margenBot + 15);
         }
+        ctx.restore();
     });
     
     // Etiqueta eje Y
@@ -1398,35 +1409,34 @@ function dibujarGraficoDistancias(peticiones, posInicial) {
     ctx.textAlign = 'center';
     ctx.fillText('Número de Petición', canvas.width / 2, canvas.height - 5);
     
-    // Leyenda de colores en la esquina superior izquierda
+    // Leyenda de colores
     const leyendas = [
         { color: '#28A745', texto: 'Corta (≤40%)' },
         { color: '#FFC107', texto: 'Media (40-70%)' },
         { color: '#DC3545', texto: 'Larga (>70%)' }
     ];
     
-    let leyendaX = margenIzq - 40; // Más a la izquierda del margen
-    const leyendaY = 5; // Más arriba, casi pegado al borde superior
+    let leyendaX = margenIzq - 40;
+    const leyendaY = 5;
     
-    // Fondo semi-transparente para la leyenda
-    const anchoLeyenda = 95; // Ancho reducido
-    const altoLeyenda = 55;  // Alto reducido
+    // Fondo de la leyenda
+    const anchoLeyenda = 95;
+    const altoLeyenda = 55;
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.fillRect(leyendaX - 5, leyendaY - 2, anchoLeyenda, altoLeyenda);
     
-    // Borde suave para la leyenda
+    // Borde de la leyenda
     ctx.strokeStyle = '#dee2e6';
     ctx.lineWidth = 1;
     ctx.strokeRect(leyendaX - 5, leyendaY - 2, anchoLeyenda, altoLeyenda);
     
+    // Elementos de la leyenda
     leyendas.forEach((leg, i) => {
-        // Cuadrado de color más pequeño
         ctx.fillStyle = leg.color;
-        ctx.fillRect(leyendaX, leyendaY + (i * 16), 10, 10); // Cuadrados más pequeños y más juntos
+        ctx.fillRect(leyendaX, leyendaY + (i * 16), 10, 10);
         
-        // Texto de la leyenda más pequeño y compacto
         ctx.fillStyle = '#495057';
-        ctx.font = '9px Arial'; // Fuente más pequeña
+        ctx.font = '9px Arial';
         ctx.textAlign = 'left';
         ctx.fillText(leg.texto, leyendaX + 15, leyendaY + (i * 16) + 8);
     });
